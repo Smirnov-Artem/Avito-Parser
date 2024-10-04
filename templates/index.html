@@ -1,8 +1,67 @@
-beautifulsoup4==4.12.3
-curl_cffi==0.7.1
-dateparser==1.2.0
-Flask==3.0.3
-numpy==1.24.0
-pandas==1.5.3
-selenium==4.25.0
-selenium_stealth==1.0.6
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Fetcher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        label {
+            font-size: 1em;
+            color: #555;
+        }
+        input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Получить URL-адреса товаров и скачать CSV</h1>
+        <form method="post">
+            <label for="queries">Введите ваши запросы (через запятую):</label><br>
+            <input type="text" id="queries" name="queries" required><br>
+            <button type="submit">Скачать</button>
+        </form>
+    </div>
+</body>
+</html>
