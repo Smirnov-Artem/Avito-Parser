@@ -79,6 +79,7 @@ def filter_descriptions_perfumes(df,units=['ml', 'мл', 'ML', 'МЛ', 'Ml', 'М
     return new_df
 
 @app.route('/', methods=['GET', 'POST'])
+@app.route('/res', methods=['POST'])
 def index():
     """
     Описание: обработка запроса / запросов в веб-приложении Flask.
@@ -106,3 +107,5 @@ def index():
 
 if __name__ == "__main__":
     app.run(debug=True)
+# if __name__ == '__main__':
+#     app.run(host='0.0.0.0', port=5000)
