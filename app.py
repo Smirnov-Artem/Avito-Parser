@@ -44,7 +44,7 @@ def process_queries(queries):
     try:
         all_urls = pd.concat(all_urls)
     expept:
-        pass
+        all_urls = pd.DataFrame(all_urls)
     return all_urls
 
 def filter_descriptions_perfumes(df,units=['ml', 'мл', 'ML', 'МЛ', 'Ml', 'Мл', 'миллилитров', 'Миллилитров'], min_value=11):
