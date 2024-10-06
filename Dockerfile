@@ -31,10 +31,9 @@ RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.d
 
 # Скачиваем и устанавливаем ChromeDriver
 RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` && \
-    wget -N https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip -P ~/ && \
-    unzip ~/chromedriver_linux64.zip -d ~/ && \
-    rm ~/chromedriver_linux64.zip && \
-    mv -f ~/chromedriver /usr/local/bin/chromedriver && \
+    wget -N https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip -P /tmp/ && \
+    unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/ && \
+    rm /tmp/chromedriver_linux64.zip && \
     chmod +x /usr/local/bin/chromedriver
 
 # Устанавливаем зависимости вашего приложения
@@ -45,5 +44,5 @@ RUN pip install -r requirements.txt
 COPY . /app
 WORKDIR /app
 
-# Команда для запуска приложения
-CMD ["python", "app.py"]
+# Указываем команду для запуска приложения через Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
