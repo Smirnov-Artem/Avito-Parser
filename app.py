@@ -41,7 +41,10 @@ def process_queries(queries):
                 all_urls.append(data)
             except Exception as exc:
                 print(f"{query} generated an exception: {exc}")
-    all_urls = pd.concat(all_urls)
+    try:
+        all_urls = pd.concat(all_urls)
+    except:
+        all_urls = pd.DataFrame()
     return all_urls
 
 def filter_descriptions_perfumes(df,units=['ml', 'мл', 'ML', 'МЛ', 'Ml', 'Мл', 'миллилитров', 'Миллилитров'], min_value=11):
