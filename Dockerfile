@@ -1,4 +1,3 @@
-# Используем базовый образ Python
 FROM python:3.9-slim
 
 # Устанавливаем зависимости для Chrome
@@ -22,7 +21,7 @@ RUN apt-get update && apt-get install -y \
     libasound2 \
     libatk-bridge2.0-0 \
     libgtk-3-0 \
-    xvfb
+    xvfb  # Добавляем Xvfb
 
 # Скачиваем и устанавливаем Chrome
 RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
@@ -44,5 +43,5 @@ RUN pip install -r requirements.txt
 COPY . /app
 WORKDIR /app
 
-# Указываем команду для запуска приложения через Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
+# Запускаем Xvfb перед запуском приложения Gunicorn
+CMD ["sh", "-c", "Xvfb :99 -ac & gunicorn --bind 0.0.0.0:8000 app:app"]
