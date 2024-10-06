@@ -71,14 +71,17 @@ def filter_descriptions_perfumes(df,units=['ml', 'мл', 'ML', 'МЛ', 'Ml', 'М
             if quantity > min_value:
                 return quantity
         return None
-    quantity_description = df['description'].apply(extract_quantity)
-    quantity_title = df['title'].apply(extract_quantity)
-    combined_quantities = quantity_description.combine_first(quantity_title)
-    mask = combined_quantities.notna()
-    new_df = df[mask].copy()
-    new_df['quantity_ml'] = combined_quantities[mask]
-    new_df['price_per_ml'] = round(new_df['price'] / new_df['quantity_ml'],2)
-    new_df = new_df.sort_values(by='price_per_ml', ascending=False, na_position='first')
+    try:
+        quantity_description = df['description'].apply(extract_quantity)
+        quantity_title = df['title'].apply(extract_quantity)
+        combined_quantities = quantity_description.combine_first(quantity_title)
+        mask = combined_quantities.notna()
+        new_df = df[mask].copy()
+        new_df['quantity_ml'] = combined_quantities[mask]
+        new_df['price_per_ml'] = round(new_df['price'] / new_df['quantity_ml'],2)
+        new_df = new_df.sort_values(by='price_per_ml', ascending=False, na_position='first')
+    except:
+        new_df = df[mask].copy()
     return new_df
 
 @app.route('/', methods=['GET', 'POST'])
