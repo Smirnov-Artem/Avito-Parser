@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y \
     libasound2 \
     libatk-bridge2.0-0 \
     libgtk-3-0 \
-    xvfb  # Добавляем Xvfb
+    xvfb
 
 # Скачиваем и устанавливаем Chrome
 RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
@@ -35,13 +35,13 @@ RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RE
     rm /tmp/chromedriver_linux64.zip && \
     chmod +x /usr/local/bin/chromedriver
 
-# Устанавливаем зависимости вашего приложения
+# Устанавливаем зависимости приложения
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Копируем ваше приложение в контейнер
+# Копируем приложение в контейнер
 COPY . /app
 WORKDIR /app
 
-# Запускаем Xvfb перед запуском приложения Gunicorn
-CMD ["sh", "-c", "Xvfb :99 -ac & gunicorn --bind 0.0.0.0:8000 app:app"]
+# Запускаем Xvfb и Gunicorn с динамическим портом
+CMD ["sh", "-c", "Xvfb :99 -ac & gunicorn --workers 4 --bind 0.0.0.0:$PORT app:app"]
