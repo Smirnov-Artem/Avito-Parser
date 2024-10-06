@@ -41,10 +41,7 @@ def process_queries(queries):
                 all_urls.append(data)
             except Exception as exc:
                 print(f"{query} generated an exception: {exc}")
-    try:
-        all_urls = pd.concat(all_urls)
-    expept:
-        all_urls = pd.DataFrame(all_urls)
+    all_urls = pd.concat(all_urls)
     return all_urls
 
 def filter_descriptions_perfumes(df,units=['ml', 'мл', 'ML', 'МЛ', 'Ml', 'Мл', 'миллилитров', 'Миллилитров'], min_value=11):
@@ -82,7 +79,6 @@ def filter_descriptions_perfumes(df,units=['ml', 'мл', 'ML', 'МЛ', 'Ml', 'М
     return new_df
 
 @app.route('/', methods=['GET', 'POST'])
-@app.route('/res', methods=['POST'])
 def index():
     """
     Описание: обработка запроса / запросов в веб-приложении Flask.
@@ -110,5 +106,3 @@ def index():
 
 if __name__ == "__main__":
     app.run(debug=True)
-# if __name__ == '__main__':
-#     app.run(host='0.0.0.0', port=5000)
