@@ -97,7 +97,10 @@ def index():
         q_names = '_'.join([query.replace(' ', '+') for query in queries])
         output_filename = q_names + str(current_time).replace(' ', '_')[:-7] + ".csv"
         all_urls = process_queries(queries)
-        all_urls['timestamp'] = all_urls['item_date'].apply(lambda x: dateparser.parse(x))
+        try:
+            all_urls['timestamp'] = all_urls['item_date'].apply(lambda x: dateparser.parse(x))
+        except:
+            pass
         perfumes = True
         all_urls = all_urls.drop_duplicates()
         if perfumes == True:
