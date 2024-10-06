@@ -81,7 +81,7 @@ def filter_descriptions_perfumes(df,units=['ml', 'мл', 'ML', 'МЛ', 'Ml', 'М
         new_df['price_per_ml'] = round(new_df['price'] / new_df['quantity_ml'],2)
         new_df = new_df.sort_values(by='price_per_ml', ascending=False, na_position='first')
     except:
-        new_df = df[mask].copy()
+        new_df = df
     return new_df
 
 @app.route('/', methods=['GET', 'POST'])
