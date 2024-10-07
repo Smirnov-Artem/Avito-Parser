@@ -28,18 +28,19 @@ RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.d
     dpkg -i google-chrome-stable_current_amd64.deb || apt-get install -f -y && \
     rm google-chrome-stable_current_amd64.deb
 
-# Скачиваем и устанавливаем ChromeDriver
-RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` && \
+# Устанавливаем ChromeDriver, совместимый с версией Chrome
+RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+') && \
+    CHROMEDRIVER_VERSION=$(curl -sS "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%.*}") && \
     wget -N https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip -P /tmp/ && \
     unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/ && \
     rm /tmp/chromedriver_linux64.zip && \
     chmod +x /usr/local/bin/chromedriver
 
-# Устанавливаем зависимости приложения
+# Устанавливаем зависимости вашего приложения
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Копируем приложение в контейнер
+# Копируем ваше приложение в контейнер
 COPY . /app
 WORKDIR /app
 
