@@ -28,9 +28,10 @@ RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.d
     dpkg -i google-chrome-stable_current_amd64.deb || apt-get install -f -y && \
     rm google-chrome-stable_current_amd64.deb
 
-# Скачиваем и устанавливаем ChromeDriver
+# Получаем версию Chrome и загружаем соответствующий ChromeDriver
 RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+') && \
-    CHROMEDRIVER_VERSION=$(curl -sS "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%.*}") && \
+    MAJOR_VERSION=$(echo $CHROME_VERSION | cut -d '.' -f 1) && \
+    CHROMEDRIVER_VERSION=$(curl -sS "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$MAJOR_VERSION") && \
     wget -N https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip -P /tmp/ && \
     unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/ && \
     rm /tmp/chromedriver_linux64.zip && \
