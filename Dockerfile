@@ -21,8 +21,8 @@ COPY . /app
 # Устанавливаем зависимости
 RUN pip install -r requirements.txt
 
-# Открываем порт 5000
-EXPOSE 5000
+# Открываем порт 8080
+EXPOSE 8080
 
 # Запускаем приложение
-CMD ["python", "app.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]
