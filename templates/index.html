@@ -13,6 +13,10 @@
         <button type="submit">Scrape</button>
     </form>
 
+    {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
+
     {% if result %}
         <h2>Results for: <a href="{{ result.url }}" target="_blank">{{ result.url }}</a></h2>
         <p><strong>Title:</strong> {{ result.title }}</p>
