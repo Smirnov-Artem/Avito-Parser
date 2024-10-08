@@ -9,6 +9,8 @@ from curl_cffi import requests
 import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import re
+import gc
+gc.collect()
 
 def generate_random_stealth():
     """
