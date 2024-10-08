@@ -1,7 +1,11 @@
+# Use the official Python 3.11 slim image as a base
 FROM python:3.11-slim
 
-# Устанавливаем зависимости для Chrome
-RUN apt-get update && apt-get install -y \
+# Set environment variables
+ENV PORT=8080
+
+# Install dependencies for Chrome and clean up afterwards
+RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     unzip \
     curl \
@@ -21,28 +25,29 @@ RUN apt-get update && apt-get install -y \
     libasound2 \
     libatk-bridge2.0-0 \
     libgtk-3-0 \
-    xvfb
+    xvfb && \
+    rm -rf /var/lib/apt/lists/*
 
-# Скачиваем и устанавливаем Chrome 129.0.6668.89
+# Download and install Chrome 129.0.6668.89
 RUN wget https://storage.googleapis.com/chrome-for-testing-public/129.0.6668.89/linux64/chrome-linux64.zip -P /tmp/ && \
     unzip /tmp/chrome-linux64.zip -d /opt/ && \
     rm /tmp/chrome-linux64.zip && \
     ln -s /opt/chrome-linux64/chrome /usr/bin/google-chrome
 
-# Скачиваем и устанавливаем ChromeDriver 129.0.6668.89
+# Download and install ChromeDriver 129.0.6668.89
 RUN wget https://storage.googleapis.com/chrome-for-testing-public/129.0.6668.89/linux64/chromedriver-linux64.zip -P /tmp/ && \
     unzip /tmp/chromedriver-linux64.zip -d /tmp/ && \
     mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/ && \
     rm -rf /tmp/chromedriver-linux64.zip /tmp/chromedriver-linux64 && \
     chmod +x /usr/local/bin/chromedriver
 
-# Устанавливаем зависимости приложения
+# Copy requirements.txt and install application dependencies
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем приложение в контейнер
+# Copy the application code to the container
 COPY . /app
 WORKDIR /app
 
-# Запускаем Xvfb и Gunicorn с динамическим портом
-CMD ["sh", "-c", "Xvfb :99 -ac & gunicorn --workers 4 --bind 0.0.0.0:$PORT app:app"]
+# Start Xvfb and Gunicorn with a reduced number of workers
+CMD ["sh", "-c", "Xvfb :99 -ac & gunicorn --workers 1 --bind 0.0.0.0:$PORT app:app"]
