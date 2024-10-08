@@ -50,4 +50,4 @@ COPY . /app
 WORKDIR /app
 
 # Start Xvfb and Gunicorn with a reduced number of workers
-CMD ["sh", "-c", "Xvfb :99 -ac & gunicorn --workers 1 --bind 0.0.0.0:$PORT app:app"]
+CMD ["sh", "-c", "Xvfb :99 -ac & gunicorn --workers 1 --timeout 60 --bind 0.0.0.0:$PORT app:app"]
