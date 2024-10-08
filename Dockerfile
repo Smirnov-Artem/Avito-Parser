@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     curl \
     gnupg \
-    jq \  # Добавляем jq
+    jq \  # Утилита для работы с JSON
     libglib2.0-0 \
     libnss3 \
     libgconf-2-4 \
