@@ -1,11 +1,12 @@
 FROM python:3.11-slim
 
-# Устанавливаем зависимости для Chrome
+# Устанавливаем зависимости для Chrome и утилиты jq
 RUN apt-get update && apt-get install -y \
     wget \
     unzip \
     curl \
     gnupg \
+    jq \  # Добавляем jq
     libglib2.0-0 \
     libnss3 \
     libgconf-2-4 \
