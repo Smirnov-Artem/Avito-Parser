@@ -31,8 +31,9 @@ RUN wget https://storage.googleapis.com/chrome-for-testing-public/129.0.6668.89/
 
 # Скачиваем и устанавливаем ChromeDriver 129.0.6668.89
 RUN wget https://storage.googleapis.com/chrome-for-testing-public/129.0.6668.89/linux64/chromedriver-linux64.zip -P /tmp/ && \
-    unzip /tmp/chromedriver-linux64.zip -d /usr/local/bin/ && \
-    rm /tmp/chromedriver-linux64.zip && \
+    unzip /tmp/chromedriver-linux64.zip -d /tmp/ && \
+    mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/ && \
+    rm -rf /tmp/chromedriver-linux64.zip /tmp/chromedriver-linux64 && \
     chmod +x /usr/local/bin/chromedriver
 
 # Устанавливаем зависимости приложения
