@@ -23,14 +23,16 @@ RUN apt-get update && apt-get install -y \
     libgtk-3-0 \
     xvfb
 
-# Скачиваем и устанавливаем Chrome
-RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-    dpkg -i google-chrome-stable_current_amd64.deb || apt-get install -f -y && \
-    rm google-chrome-stable_current_amd64.deb
+# Скачиваем и устанавливаем Chrome последней стабильной версии
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' && \
+    apt-get update && apt-get install -y google-chrome-stable
 
-# Скачиваем и устанавливаем ChromeDriver
-RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` && \
-    wget -N https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip -P /tmp/ && \
+# Получаем текущую версию Chrome и загружаем соответствующую версию ChromeDriver
+RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+') && \
+    CHROMEDRIVER_VERSION=$(curl -sS https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json | \
+    jq -r --arg CHROME_VERSION "$CHROME_VERSION" '.versions[] | select(.chromeVersion | startswith($CHROME_VERSION)) | .downloads.chromedriver[] | select(.platform=="linux64").url') && \
+    wget -N $CHROMEDRIVER_VERSION -P /tmp/ && \
     unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/ && \
     rm /tmp/chromedriver_linux64.zip && \
     chmod +x /usr/local/bin/chromedriver
