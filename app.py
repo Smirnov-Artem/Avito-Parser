@@ -5,6 +5,8 @@ from avito_parser import *
 import os
 from datetime import datetime
 import dateparser
+import gc
+gc.collect()
 
 app = Flask(__name__)
 
