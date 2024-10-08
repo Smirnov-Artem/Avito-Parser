@@ -1,35 +1,28 @@
-# Используем официальный образ Python с минимальным количеством пакетов
-FROM python:3.9-slim
+# Используем официальный образ Python
+FROM python:3.10-slim
 
-# Устанавливаем необходимые системные пакеты
+# Устанавливаем зависимости для chromedriver
 RUN apt-get update && apt-get install -y \
-    wget \
-    curl \
-    unzip \
     chromium-driver \
-    chromium \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    libglib2.0-0 \
+    libnss3 \
+    libgconf-2-4 \
+    libfontconfig1 \
+    libxrender1 \
+    libxi6 \
+    libxrandr2
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем файл с зависимостями
-COPY requirements.txt .
+# Копируем файлы приложения в контейнер
+COPY . /app
 
-# Устанавливаем Python-зависимости
-RUN pip install --no-cache-dir -r requirements.txt
+# Устанавливаем зависимости
+RUN pip install -r requirements.txt
 
-# Копируем файлы приложения
-COPY app.py .
-COPY templates/ ./templates/
-
-# Задаем переменные окружения для Chrome, чтобы Selenium мог корректно работать в безголовом режиме
-ENV CHROME_BIN=/usr/bin/chromium \
-    CHROME_DRIVER=/usr/bin/chromedriver
-
-# Открываем порт для доступа к приложению
+# Открываем порт 5000
 EXPOSE 5000
 
-# Запускаем приложение через gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+# Запускаем приложение
+CMD ["python", "app.py"]
