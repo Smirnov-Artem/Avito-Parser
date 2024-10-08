@@ -29,10 +29,10 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add
     sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' && \
     apt-get update && apt-get install -y google-chrome-stable
 
-# Получаем текущую версию Chrome и загружаем соответствующую версию ChromeDriver
-RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+') && \
+# Получаем текущую полную версию Chrome (включая все 4 части версии)
+RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+') && \
     CHROMEDRIVER_VERSION=$(curl -sS https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json | \
-    jq -r --arg CHROME_VERSION "$CHROME_VERSION" '.versions[] | select(.chromeVersion | startswith($CHROME_VERSION)) | .downloads.chromedriver[] | select(.platform=="linux64").url') && \
+    jq -r --arg CHROME_VERSION "$CHROME_VERSION" '.versions[] | select(.chromeVersion==$CHROME_VERSION) | .downloads.chromedriver[] | select(.platform=="linux64").url') && \
     wget -N $CHROMEDRIVER_VERSION -P /tmp/ && \
     unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/ && \
     rm /tmp/chromedriver_linux64.zip && \
