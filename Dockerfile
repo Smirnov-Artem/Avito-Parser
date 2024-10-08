@@ -4,7 +4,7 @@ FROM python:3.10-slim
 # Устанавливаем зависимости для chromedriver и браузера
 RUN apt-get update && apt-get install -y \
     chromium-driver \
-    chromium-browser \
+    chromium \
     libglib2.0-0 \
     libnss3 \
     libgconf-2-4 \
