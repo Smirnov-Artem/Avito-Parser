@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 # Настройки для chromedriver
 chrome_options = Options()
-chrome_options.add_argument("--headless")
+chrome_options.add_argument("--headless")  # Работа в headless режиме
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
@@ -17,7 +17,7 @@ chrome_options.add_argument("--disable-dev-shm-usage")
 @app.route('/')
 def index():
     # Путь к chromedriver
-    chrome_service = Service(executable_path=os.environ.get("CHROMEDRIVER_PATH", "/usr/local/bin/chromedriver"))
+    chrome_service = Service(executable_path=os.environ.get("CHROMEDRIVER_PATH", "/usr/bin/chromedriver"))
 
     # Запускаем chromedriver
     with webdriver.Chrome(service=chrome_service, options=chrome_options) as driver:
@@ -29,5 +29,5 @@ def index():
         return render_template('index.html', title=title, intro=intro_text)
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)
