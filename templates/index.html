@@ -3,10 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
+    <title>Web Scraper</title>
 </head>
 <body>
-    <h1>{{ title }}</h1>
-    <p>{{ intro }}</p>
+    <h1>Simple Web Scraper</h1>
+    <form method="POST" action="/">
+        <label for="url">Enter a URL to scrape:</label>
+        <input type="text" id="url" name="url" placeholder="https://example.com" required>
+        <button type="submit">Scrape</button>
+    </form>
+
+    {% if result %}
+        <h2>Results for: <a href="{{ result.url }}" target="_blank">{{ result.url }}</a></h2>
+        <p><strong>Title:</strong> {{ result.title }}</p>
+        <p><strong>First paragraph:</strong> {{ result.paragraph }}</p>
+    {% endif %}
 </body>
 </html>
