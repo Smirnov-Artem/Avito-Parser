@@ -1,12 +1,11 @@
 FROM python:3.11-slim
 
-# Устанавливаем зависимости для Chrome и утилиты jq
+# Устанавливаем зависимости для Chrome
 RUN apt-get update && apt-get install -y \
     wget \
     unzip \
     curl \
     gnupg \
-    jq \
     libglib2.0-0 \
     libnss3 \
     libgconf-2-4 \
@@ -24,16 +23,14 @@ RUN apt-get update && apt-get install -y \
     libgtk-3-0 \
     xvfb
 
-# Скачиваем и устанавливаем Chrome последней стабильной версии
-RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-    sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' && \
-    apt-get update && apt-get install -y google-chrome-stable
+# Скачиваем и устанавливаем Chrome
+RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    dpkg -i google-chrome-stable_current_amd64.deb || apt-get install -f -y && \
+    rm google-chrome-stable_current_amd64.deb
 
-# Получаем текущую полную версию Chrome (включая все 4 части версии)
-RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+') && \
-    CHROMEDRIVER_VERSION=$(curl -sS https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json | \
-    jq -r --arg CHROME_VERSION "$CHROME_VERSION" '.versions[] | select(.chromeVersion==$CHROME_VERSION) | .downloads.chromedriver[] | select(.platform=="linux64").url') && \
-    wget -N $CHROMEDRIVER_VERSION -P /tmp/ && \
+# Скачиваем и устанавливаем ChromeDriver
+RUN CHROMEDRIVER_VERSION=curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE && \
+    wget -N https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip -P /tmp/ && \
     unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/ && \
     rm /tmp/chromedriver_linux64.zip && \
     chmod +x /usr/local/bin/chromedriver
