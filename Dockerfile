@@ -2,7 +2,7 @@
 FROM python:3.11-slim
 
 # Set environment variables
-ENV PORT=8080
+ENV PORT=5000
 
 # Install dependencies for Chrome and clean up afterwards
 RUN apt-get update && apt-get install -y --no-install-recommends \
