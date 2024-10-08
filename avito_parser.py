@@ -159,6 +159,7 @@ def extract_card_urls(url):
         возвращает лист из ссылок на релевантные товары.
     """
     soup = url
+    print(soup)
     content = soup.find("div", {"id": "app"}).find("div").find("div", {"class": "index-content-_KxNP"})
     content_with_cards = content.find_all(class_="items-items-kAJAg") if content else None
     content_with_cards = content_with_cards[0] if content_with_cards else None
