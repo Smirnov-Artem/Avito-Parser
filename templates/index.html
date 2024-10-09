@@ -1,26 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Scraper</title>
+    <title>URL Fetcher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        label {
+            font-size: 1em;
+            color: #555;
+        }
+        input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-    <h1>Simple Web Scraper</h1>
-    <form method="POST" action="/">
-        <label for="url">Enter a URL to scrape:</label>
-        <input type="text" id="url" name="url" placeholder="https://example.com" required>
-        <button type="submit">Scrape</button>
-    </form>
-
-    {% if error_message %}
-        <p style="color: red;">{{ error_message }}</p>
-    {% endif %}
-
-    {% if result %}
-        <h2>Results for: <a href="{{ result.url }}" target="_blank">{{ result.url }}</a></h2>
-        <p><strong>Title:</strong> {{ result.title }}</p>
-        <p><strong>First paragraph:</strong> {{ result.paragraph }}</p>
-    {% endif %}
+    <div class="container">
+        <h1>Получить URL-адреса товаров и скачать CSV</h1>
+        <form method="post">
+            <label for="queries">Введите ваши запросы (через запятую):</label><br>
+            <input type="text" id="queries" name="queries" required><br>
+            <button type="submit">Скачать</button>
+        </form>
+    </div>
 </body>
 </html>
