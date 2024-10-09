@@ -153,7 +153,7 @@ def fetch_urls(query):
         results = []
         for item in items:
             title = item.find('h3').get_text(strip=True)
-            price = item.find('span', {'data-marker': 'price'}).get_text(strip=True) if item.find('span', {'data-marker': 'price'}) else 'N/A'
+            price = item.find('span', {'data-marker': 'price'}).get_text(strip=True) if item.find('meta', itemprop='price')['content']) else 'N/A'
             item_url = 'https://www.avito.ru' + item.find('a')['href']
             item_date = item.find('div', {'data-marker': 'item-date'}).get_text(strip=True) if item.find('div', {'data-marker': 'item-date'}) else 'N/A'
 
