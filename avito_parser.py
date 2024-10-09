@@ -100,22 +100,11 @@ def scrolldown(driver, num_scrolls):
         driver.execute_script('window.scrollBy(0, 500)')
         time.sleep(0.1)
 
+
 def get_searchpage_cards(q, driver, page_url, i, all_cards=[]):
     """
-    Описание: рекурсивно возвращает лист из доступных ссылок на товары, включая нерелевантые (предложенные самим сайтом)
-    на активной странице, пока есть следующая страница.
-
-    Args:
-        q (str): запрос вида "iphone+15".
-        driver (selenium.webdriver.chrome.webdriver.WebDriver): драйвер.
-        page_url (str): адрес страницы для поиска товаров.
-        i (int): номер страницы.
-        all_cards (list): список из URLs.
-
-    Returns:
-        all_cards (list): список из URLs.
+    Рекурсивный поиск товаров на страницах.
     """
-
     driver.get(page_url)
     scrolldown(driver, 20)
     search_page_html = BeautifulSoup(driver.page_source, "html.parser")
