@@ -1,26 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Scraper</title>
+    <title>Avito Scraper</title>
 </head>
 <body>
-    <h1>Simple Web Scraper</h1>
-    <form method="POST" action="/">
-        <label for="url">Enter a URL to scrape:</label>
-        <input type="text" id="url" name="url" placeholder="https://example.com" required>
-        <button type="submit">Scrape</button>
+    <h1>Avito Scraper</h1>
+    <form method="post">
+        <label for="queries">Введите запросы через запятую (например, "iphone 15 pro, ноутбук lenovo"):</label>
+        <input type="text" id="queries" name="queries" required>
+        <button type="submit">Поиск</button>
     </form>
-
-    {% if error_message %}
-        <p style="color: red;">{{ error_message }}</p>
-    {% endif %}
-
-    {% if result %}
-        <h2>Results for: <a href="{{ result.url }}" target="_blank">{{ result.url }}</a></h2>
-        <p><strong>Title:</strong> {{ result.title }}</p>
-        <p><strong>First paragraph:</strong> {{ result.paragraph }}</p>
-    {% endif %}
 </body>
 </html>
