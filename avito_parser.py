@@ -5,6 +5,7 @@ from selenium_stealth import stealth
 from bs4 import BeautifulSoup
 import re
 import random
+import requests
 
 def generate_random_stealth():
     """
@@ -164,10 +165,6 @@ def extract_card_urls(url):
                 print(f"Error processing card: {e}")
 
     return pd.DataFrame(ress)
-
-import requests
-from bs4 import BeautifulSoup
-import pandas as pd
 
 def fetch_urls(query):
     """
