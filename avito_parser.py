@@ -3,8 +3,8 @@ import pandas as pd
 from selenium import webdriver
 from selenium_stealth import stealth
 from bs4 import BeautifulSoup
+import re
 import random
-import requests
 
 def generate_random_stealth():
     """
@@ -97,28 +97,22 @@ def extract_card_urls(url):
                 description = card.find('meta', itemprop='description')['content']
                 price = float(card.find('meta', itemprop='price')['content'])
                 item_date = card.find('p', {'data-marker': 'item-date'}).text
-                
-                # Adding new columns from the second script
-                company_name = card.find(class_='styles-module-root-o3j6a').text.strip() if card.find(class_='styles-module-root-o3j6a') else ''
-                status = card.find('span', class_='SnippetBadge-title-oSImJ').text.strip() if card.find('span', class_='SnippetBadge-title-oSImJ') else ''
-                grade = card.find('span', {'data-marker': 'seller-rating/score'}).text.strip() if card.find('span', {'data-marker': 'seller-rating/score'}) else ''
-                review_number = card.find('span', {'data-marker': 'seller-rating/summary'}).text.strip() if card.find('span', {'data-marker': 'seller-rating/summary'}) else ''
-                
+
                 ress.append({
                     'product_link': product_link,
                     'title': title,
                     'description': description,
                     'price': price,
-                    'item_date': item_date,
-                    'company_name': company_name,
-                    'status': status,
-                    'grade': grade,
-                    'review_number': review_number
+                    'item_date': item_date
                 })
             except Exception as e:
                 print(f"Error processing card: {e}")
 
     return pd.DataFrame(ress)
+
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
 
 def fetch_urls(query):
     """
@@ -130,17 +124,53 @@ def fetch_urls(query):
     Returns:
         pd.DataFrame: DataFrame of the results.
     """
-    driver = init_webdriver()
-    url_search = "https://www.avito.ru/all?cd=1&q=" + query
-    search_page_html_all = get_searchpage_cards(query, driver, url_search, 1)
-    infos = []
-    for ind in range(0, len(search_page_html_all)):
-        card_urls_and_info = extract_card_urls(search_page_html_all[ind])
-        infos.append(card_urls_and_info)
-    driver.quit()  # останавливает драйвер после выполения
-    new_df = pd.concat(infos)
-    
-    # Replacing 'price' column formatting for consistency
-    new_df['price'] = new_df['price'].apply(lambda x: f"{x:.2f}" if pd.notnull(x) else 'N/A')
-    
-    return new_df
+    base_url = f'https://www.avito.ru/rossiya?q={query}'
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+    }
+
+    try:
+        response = requests.get(base_url, headers=headers)
+        response.raise_for_status()
+
+        # Debugging: Check if we got a response and its status
+        print(f"Response status code for query '{query}': {response.status_code}")
+        print(f"URL: {response.url}")
+
+        # Parse the page content
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        # Debugging: Check the page title or structure to verify correct page
+        print(f"Page title: {soup.title.string}")
+
+        # Find listings: Adjust the selector based on Avito's structure
+        items = soup.find_all('div', {'data-marker': 'item'})
+
+        # Debugging: Check how many items were found
+        print(f"Number of items found for query '{query}': {len(items)}")
+
+        # Collect item data
+        results = []
+        for item in items:
+            title = item.find('h3').get_text(strip=True)
+            price = item.find('span', {'data-marker': 'price'}).get_text(strip=True) if item.find('span', {'data-marker': 'price'}) else 'N/A'
+            item_url = 'https://www.avito.ru' + item.find('a')['href']
+            item_date = item.find('div', {'data-marker': 'item-date'}).get_text(strip=True) if item.find('div', {'data-marker': 'item-date'}) else 'N/A'
+
+            results.append({
+                'title': title,
+                'price': price,
+                'item_url': item_url,
+                'item_date': item_date
+            })
+
+        # Debugging: Check the results collected
+        print(f"Results for query '{query}': {results}")
+
+        # Convert the results to a DataFrame
+        df = pd.DataFrame(results)
+        return df
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching URL for query '{query}': {e}")
+        return pd.DataFrame()  # Return an empty DataFrame on error
