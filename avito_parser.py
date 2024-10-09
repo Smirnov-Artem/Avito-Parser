@@ -6,9 +6,10 @@ from bs4 import BeautifulSoup
 import re
 import random
 import numpy as np
-import json
-from curl_cffi import requests
-from concurrent.futures import ThreadPoolExecutor, as_completed
+#import json
+import requests
+#from curl_cffi import requests
+#from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def generate_random_stealth():
     """
