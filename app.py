@@ -110,7 +110,7 @@ def index():
         all_urls['timestamp'] = all_urls['item_date'].apply(lambda x: dateparser.parse(x))
         all_urls = all_urls.drop_duplicates()
 
-        perfumes = True  # This can be dynamically set based on user input
+        perfumes = False  # This can be dynamically set based on user input
         if perfumes:
             all_urls = filter_descriptions_perfumes(all_urls)
         
