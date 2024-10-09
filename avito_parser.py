@@ -5,7 +5,10 @@ from selenium_stealth import stealth
 from bs4 import BeautifulSoup
 import re
 import random
-import requests
+import numpy as np
+import json
+from curl_cffi import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def generate_random_stealth():
     """
