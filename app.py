@@ -1,58 +1,112 @@
-from flask import Flask, render_template, request
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
+from flask import Flask, request, render_template, send_file
+import csv
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from avito_parser import *
 import os
+from datetime import datetime
+import dateparser
+import pandas as pd
 
 app = Flask(__name__)
 
-# Настройки для chromedriver
-chrome_options = Options()
-chrome_options.add_argument("--headless")  # Работа в headless режиме
-chrome_options.add_argument("--disable-gpu")
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
+def write_to_csv(all_urls, filename="output.csv"):
+    """
+    Описание: записывает результат в CSV-файл.
+
+    Args:
+        all_urls (pd.DataFrame): DataFrame со ссылками на товары.
+        filename (str): название файла.
+    """
+    all_urls.to_csv(filename, index=False, encoding='utf-8', columns=all_urls.columns)
+
+def process_queries(queries):
+    """
+    Описание: возвращает все искомые товары.
+
+    Args:
+        queries (list): запрос(ы) вида ["iphone 15 pro", "ноутбук lenovo"].
+
+    Returns:
+        pd.DataFrame: DataFrame всех найденных товаров.
+    """
+    queries = [query.replace(" ", "+") for query in queries]
+    all_urls = []
+    with ThreadPoolExecutor(max_workers=len(queries)) as executor:
+        future_to_query = {executor.submit(fetch_urls, query): query for query in queries}
+        for future in as_completed(future_to_query):
+            query = future_to_query[future]
+            try:
+                data = future.result()
+                all_urls.append(data)
+            except Exception as exc:
+                print(f"{query} generated an exception: {exc}")
+    all_urls = pd.concat(all_urls)
+    return all_urls
+
+def filter_descriptions_perfumes(df, units=None, min_value=11):
+    """
+    Filters rows in the DataFrame based on the 'description' or 'title' columns 
+    that contain a quantity greater than a specified threshold followed by specific units.
+
+    Args:
+        df (pd.DataFrame): DataFrame со ссылками на товары.
+        units (list): Список единиц измерения.
+        min_value (int): Минимальное значение количества.
+    
+    Returns:
+        pd.DataFrame: Отфильтрованный DataFrame.
+    """
+    if units is None:
+        units = ['ml', 'мл', 'ML', 'МЛ', 'Ml', 'Мл', 'миллилитров', 'Миллилитров']
+    
+    unit_pattern = '|'.join(units)
+    pattern = fr'\b(\d+(\.\d+)?)\s*({unit_pattern})\b'
+
+    def extract_quantity(text):
+        match = re.search(pattern, text)
+        if match:
+            quantity = float(match.group(1))
+            if quantity > min_value:
+                return quantity
+        return None
+
+    quantity_description = df['description'].apply(extract_quantity)
+    quantity_title = df['title'].apply(extract_quantity)
+    combined_quantities = quantity_description.combine_first(quantity_title)
+    mask = combined_quantities.notna()
+    new_df = df[mask].copy()
+    new_df['quantity_ml'] = combined_quantities[mask]
+    new_df['price_per_ml'] = round(new_df['price'] / new_df['quantity_ml'], 2)
+    new_df = new_df.sort_values(by='price_per_ml', ascending=False, na_position='first')
+    return new_df
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    result = None
-    error_message = None
+    """
+    Описание: обработка запросов в веб-приложении.
 
+    Returns:
+        CSV файл для скачивания, если запрос выполнен методом POST.
+        Иначе рендерит шаблон index.html.
+    """
     if request.method == 'POST':
-        # Получаем URL от пользователя
-        url = request.form.get('url')
+        queries = request.form.get('queries').split(',')
+        current_time = datetime.now()
+        q_names = '_'.join([query.replace(' ', '+') for query in queries])
+        output_filename = q_names + str(current_time).replace(' ', '_')[:-7] + ".csv"
+        all_urls = process_queries(queries)
+        all_urls['timestamp'] = all_urls['item_date'].apply(lambda x: dateparser.parse(x))
+        all_urls = all_urls.drop_duplicates()
 
-        # Проверяем, что URL начинается с http:// или https://
-        if url and (url.startswith("http://") or url.startswith("https://")):
-            # Путь к chromedriver
-            chrome_service = Service(executable_path=os.environ.get("CHROMEDRIVER_PATH", "/usr/bin/chromedriver"))
+        perfumes = True  # This can be dynamically set based on user input
+        if perfumes:
+            all_urls = filter_descriptions_perfumes(all_urls)
+        
+        write_to_csv(all_urls, filename=output_filename)
+        return send_file(output_filename, as_attachment=True, download_name=output_filename)
 
-            # Запускаем chromedriver и парсим контент страницы
-            try:
-                with webdriver.Chrome(service=chrome_service, options=chrome_options) as driver:
-                    driver.get(url)
-                    title = driver.title
-                    
-                    # Находим первый параграф на странице
-                    try:
-                        element = driver.find_element(By.TAG_NAME, 'p')
-                        paragraph = element.text
-                    except:
-                        paragraph = "No paragraph found on this page."
+    return render_template('index.html')
 
-                    result = {
-                        'url': url,
-                        'title': title,
-                        'paragraph': paragraph
-                    }
-            except Exception as e:
-                error_message = str(e)
-        else:
-            error_message = "Please enter a valid URL starting with http:// or https://."
-
-    return render_template('index.html', result=result, error_message=error_message)
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(debug=True, host='0.0.0.0', port=port)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
