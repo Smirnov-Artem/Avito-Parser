@@ -89,8 +89,16 @@ def init_webdriver(proxy=None):
 
 def scrolldown(driver, num_scrolls):
     """
-    Прокрутка страницы вниз.
+    Описание: прокручивает активную страницу вниз.
+
+    Args:
+        driver (selenium.webdriver.chrome.webdriver.WebDriver): драйвер.
+        num_scrolls (int): сколько раз нужно выполнить прокрутку страницы вниз.
+
+    Returns:
+        selenium.webdriver.chrome.webdriver.WebDriver: сгенерированный драйвер.
     """
+
     for _ in range(num_scrolls):
         driver.execute_script('window.scrollBy(0, 500)')
         time.sleep(0.1)
