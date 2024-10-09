@@ -9,20 +9,55 @@ import requests
 
 def generate_random_stealth():
     """
-    Возвращает случайные атрибуты для stealth браузера.
+    Описание: возвращает рандомно сгенерированные атрибуты 
+    для последующего использования в stealth driver.
+
+    Вероятно, такая вариабельность избыточна, парсинг Avito
+    работает при минимальном наборе атрибутов для драйвера.
+    Тем не менее, для большей уверенности в стабильной работе
+    лучше использовать как можно больше разных атрибутов.
+
+    Returns:
+        dict: Словарь из строчек.
     """
+
     languages = [
-        ["en-US", "en"], ["ru-RU", "ru"], ["fr-FR", "fr"]
+        ["en-US", "en"], ["en-GB", "en"], ["de-DE", "de"],
+        ["fr-FR", "fr"], ["es-ES", "es"], ["ru-RU", "ru"],
+        ["zh-CN", "zh"], ["ja-JP", "ja"], ["it-IT", "it"],
+        ["ko-KR", "ko"], ["pt-BR", "pt"], ["nl-NL", "nl"],
+        ["pl-PL", "pl"], ["sv-SE", "sv"], ["tr-TR", "tr"]
     ]
 
-    vendors = ["Google Inc.", "Microsoft Corporation", "Mozilla Foundation"]
+    vendors = [
+        "Google Inc.", "Google LLC", "Microsoft Corporation",
+        "Apple Inc.", "Mozilla Foundation", "Opera Software",
+        "Samsung Electronics", "Yandex", "Baidu Inc.",
+        "Huawei Technologies"
+    ]
 
-    platforms = ["Win32", "Win64", "MacIntel", "Linux x86_64"]
+    platforms = [
+        "Win32", "Win64", "MacIntel", "Linux x86_64",
+        "Windows NT 10.0", "Linux armv7l", "Linux aarch64",
+        "iPhone", "iPad", "Android", "FreeBSD", "NetBSD",
+        "OpenBSD", "SunOS"
+    ]
 
-    webgl_vendors = ["Intel Inc.", "NVIDIA Corporation", "AMD Inc."]
+    webgl_vendors = [
+        "Intel Inc.", "NVIDIA Corporation", "AMD Inc.",
+        "ATI Technologies Inc.", "Qualcomm Inc.", "ARM Inc.",
+        "Imagination Technologies", "Apple Inc.", "Broadcom Inc.",
+        "Vivante Corporation"
+    ]
 
-    renderers = ["Intel Iris OpenGL Engine", "NVIDIA GeForce RTX 2080", "AMD Radeon Pro 5700 XT"]
-
+    renderers = [
+        "Intel Iris OpenGL Engine", "NVIDIA GeForce RTX 2080",
+        "AMD Radeon Pro 5700 XT", "ATI Radeon HD 5450",
+        "Qualcomm Adreno 640", "Intel UHD Graphics 630",
+        "Apple A12X Bionic GPU", "ARM Mali-G76 MP16",
+        "Vivante GC1000", "Imagination PowerVR SGX543",
+        "NVIDIA Tesla P100", "NVIDIA Quadro RTX 6000"
+    ]
     return {
         "languages": random.choice(languages),
         "vendor": random.choice(vendors),
