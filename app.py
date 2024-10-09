@@ -27,7 +27,7 @@ def process_queries(queries):
         queries (list): запрос(ы) вида ["iphone 15 pro", "ноутбук lenovo"].
 
     Returns:
-        pd.DataFrame: DataFrame всех найденных товаров.
+        pd.DataFrame: DataFrame всех найденных товаров или пустой DataFrame при отсутствии результатов.
     """
     queries = [query.replace(" ", "+") for query in queries]
     all_urls = []
@@ -37,10 +37,18 @@ def process_queries(queries):
             query = future_to_query[future]
             try:
                 data = future.result()
-                all_urls.append(data)
+                if not data.empty:
+                    all_urls.append(data)
+                else:
+                    print(f"No data found for query: {query}")
             except Exception as exc:
                 print(f"{query} generated an exception: {exc}")
-    all_urls = pd.concat(all_urls)
+    
+    if all_urls:
+        all_urls = pd.concat(all_urls)
+    else:
+        all_urls = pd.DataFrame()  # Return an empty DataFrame if no data was fetched
+    
     return all_urls
 
 def filter_descriptions_perfumes(df, units=None, min_value=11):
