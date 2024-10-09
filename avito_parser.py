@@ -110,67 +110,16 @@ def extract_card_urls(url):
 
     return pd.DataFrame(ress)
 
-import requests
-from bs4 import BeautifulSoup
-import pandas as pd
-
 def fetch_urls(query):
     """
-    Fetches product data for a given query from Avito.
-
-    Args:
-        query (str): The query string (e.g., 'iphone+15+pro').
-
-    Returns:
-        pd.DataFrame: DataFrame of the results.
+    Возвращает ссылки на товары по запросу.
     """
-    base_url = f'https://www.avito.ru/rossiya?q={query}'
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    }
-
-    try:
-        response = requests.get(base_url, headers=headers)
-        response.raise_for_status()
-
-        # Debugging: Check if we got a response and its status
-        print(f"Response status code for query '{query}': {response.status_code}")
-        print(f"URL: {response.url}")
-
-        # Parse the page content
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        # Debugging: Check the page title or structure to verify correct page
-        print(f"Page title: {soup.title.string}")
-
-        # Find listings: Adjust the selector based on Avito's structure
-        items = soup.find_all('div', {'data-marker': 'item'})
-
-        # Debugging: Check how many items were found
-        print(f"Number of items found for query '{query}': {len(items)}")
-
-        # Collect item data
-        results = []
-        for item in items:
-            title = item.find('h3').get_text(strip=True)
-            price = item.find('span', {'data-marker': 'price'}).get_text(strip=True) if item.find('meta', itemprop='price')['content'] else 'N/A'
-            item_url = 'https://www.avito.ru' + item.find('a')['href']
-            item_date = item.find('div', {'data-marker': 'item-date'}).get_text(strip=True) if item.find('div', {'data-marker': 'item-date'}) else 'N/A'
-
-            results.append({
-                'title': title,
-                'price': price,
-                'item_url': item_url,
-                'item_date': item_date
-            })
-
-        # Debugging: Check the results collected
-        print(f"Results for query '{query}': {results}")
-
-        # Convert the results to a DataFrame
-        df = pd.DataFrame(results)
-        return df
-
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching URL for query '{query}': {e}")
-        return pd.DataFrame()  # Return an empty DataFrame on error
+    driver = init_webdriver()
+    url_search = "https://www.avito.ru/all?cd=1&q=" + query
+    search_page_html_all = get_searchpage_cards(query, driver, url_search, 1)
+    infos = []
+    for html in search_page_html_all:
+        card_urls_and_info = extract_card_urls(html)
+        infos.append(card_urls_and_info)
+    driver.quit()
+    return pd.concat(infos)
