@@ -5,6 +5,7 @@ from selenium_stealth import stealth
 from bs4 import BeautifulSoup
 import re
 import random
+import requests
 
 def generate_random_stealth():
     """
