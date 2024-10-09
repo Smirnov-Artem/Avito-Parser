@@ -82,38 +82,74 @@ def get_searchpage_cards(q, driver, page_url, i, all_cards=[]):
 
 def extract_card_urls(url):
     """
-    Извлечение URL товаров на странице.
+    Описание: находит ссылки на искомые товары на странице,
+    релевантные ссылки находятся в определенном классе страницы (items-items-kAJAg).
+
+    Args:
+        search_page_html (str): выбранная страница.
+
+    Returns:
+        возвращает лист из ссылок на релевантные товары.
     """
     soup = url
     content = soup.find("div", {"id": "app"}).find("div").find("div", {"class": "index-content-_KxNP"})
     content_with_cards = content.find_all(class_="items-items-kAJAg") if content else None
+    content_with_cards = content_with_cards[0] if content_with_cards else None
     ress = []
-    if content_with_cards:
-        res = [card for card in content_with_cards[0]]
-        for card in res:
+    res = [card for card in content_with_cards] if content_with_cards else []
+    # Loop through each card and extract the required data
+    for card in res:
+        soup = card
+
+        try:
+            # Extract product details
+            product = soup.find("a", {"data-marker": "item-title"})
+            product_link = "https://www.avito.ru" + product['href']
             try:
-                product = card.find("a", {"data-marker": "item-title"})
-                product_link = "https://www.avito.ru" + product['href']
-                title = product.get('title', '')
-                description = card.find('meta', itemprop='description')['content']
-                price = float(card.find('meta', itemprop='price')['content'])
-                item_date = card.find('p', {'data-marker': 'item-date'}).text
+                title = product['title']
+            except:
+                title = ''
+            description = soup.find('meta', itemprop='description')['content']
+            price = float(soup.find('meta', itemprop='price')['content'])
+            image_link = soup.find('li', {'data-marker': lambda x: x and x.startswith('slider-image/image')})['data-marker'].split('image-')[1]
+            item_date = soup.find('p', {'data-marker': 'item-date'}).get_text()
 
-                ress.append({
-                    'product_link': product_link,
-                    'title': title,
-                    'description': description,
-                    'price': price,
-                    'item_date': item_date
-                })
-            except Exception as e:
-                print(f"Error processing card: {e}")
+            try:
+                company_name = soup.find(class_='styles-module-root-o3j6a styles-module-size_s-xb_uK styles-module-size_s_compensated-QmHFs styles-module-size_s-__aUd styles-module-ellipsis-XeCfh styles-module-ellipsis_oneLine-_MdfX stylesMarningNormal-module-root-_BXZU stylesMarningNormal-module-paragraph-s-_lGjQ').text.strip()
+            except:
+                company_name = ''
+            try:
+                status = soup.find('span', class_='SnippetBadge-title-oSImJ').text.strip()
+            except:
+                status = ''
+            try:
+                grade = soup.find('span', {'data-marker': 'seller-rating/score'}).text.strip()
+            except:
+                grade = ''
+            try:
+                review_number = soup.find('span', {'data-marker': 'seller-rating/summary'}).text.strip()
+            except:
+                review_number = ''
 
-    return pd.DataFrame(ress)
+            # Append the extracted details as a dictionary
+            ress.append({
+                'product_link': product_link,
+                'title': title,
+                'description': description,
+                'price': price,
+                'image_link': image_link,
+                'item_date': item_date,
+                'company_name': company_name,
+                'status': status,
+                'grade': grade,
+                'review_number': review_number
+            })
+        except Exception as e:
+            print(f"Error processing card: {e}")
 
-import requests
-from bs4 import BeautifulSoup
-import pandas as pd
+    # Convert the list of dictionaries into a Pandas DataFrame
+    df = pd.DataFrame(ress)
+    return df
 
 def fetch_urls(query):
     """
