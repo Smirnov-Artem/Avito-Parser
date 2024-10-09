@@ -1,1 +1,1 @@
-web: gunicorn --workers 1 --timeout 300 app:app
+web: gunicorn --worker-class sync --workers 1 --bind 0.0.0.0:8080 app:app
