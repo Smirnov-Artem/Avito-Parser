@@ -135,36 +135,36 @@ def get_searchpage_cards(q, driver, page_url, i, all_cards=[]):
         return get_searchpage_cards(q, driver, next_page_url, i + 1, all_cards)
     return all_cards
 
-def extract_card_urls(url):
-    """
-    Извлечение URL товаров на странице.
-    """
-    soup = url
-    content = soup.find("div", {"id": "app"}).find("div").find("div", {"class": "index-content-_KxNP"})
-    content_with_cards = content.find_all(class_="items-items-kAJAg") if content else None
-    ress = []
-    if content_with_cards:
-        res = [card for card in content_with_cards[0]]
-        for card in res:
-            try:
-                product = card.find("a", {"data-marker": "item-title"})
-                product_link = "https://www.avito.ru" + product['href']
-                title = product.get('title', '')
-                description = card.find('meta', itemprop='description')['content']
-                price = float(card.find('meta', itemprop='price')['content'])
-                item_date = card.find('p', {'data-marker': 'item-date'}).text
+# def extract_card_urls(url):
+#     """
+#     Извлечение URL товаров на странице.
+#     """
+#     soup = url
+#     content = soup.find("div", {"id": "app"}).find("div").find("div", {"class": "index-content-_KxNP"})
+#     content_with_cards = content.find_all(class_="items-items-kAJAg") if content else None
+#     ress = []
+#     if content_with_cards:
+#         res = [card for card in content_with_cards[0]]
+#         for card in res:
+#             try:
+#                 product = card.find("a", {"data-marker": "item-title"})
+#                 product_link = "https://www.avito.ru" + product['href']
+#                 title = product.get('title', '')
+#                 description = card.find('meta', itemprop='description')['content']
+#                 price = float(card.find('meta', itemprop='price')['content'])
+#                 item_date = card.find('p', {'data-marker': 'item-date'}).text
 
-                ress.append({
-                    'product_link': product_link,
-                    'title': title,
-                    'description': description,
-                    'price': price,
-                    'item_date': item_date
-                })
-            except Exception as e:
-                print(f"Error processing card: {e}")
+#                 ress.append({
+#                     'product_link': product_link,
+#                     'title': title,
+#                     'description': description,
+#                     'price': price,
+#                     'item_date': item_date
+#                 })
+#             except Exception as e:
+#                 print(f"Error processing card: {e}")
 
-    return pd.DataFrame(ress)
+#     return pd.DataFrame(ress)
 
 def fetch_urls(query):
     """
