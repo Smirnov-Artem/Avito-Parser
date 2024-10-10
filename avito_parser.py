@@ -135,37 +135,6 @@ def get_searchpage_cards(q, driver, page_url, i, all_cards=[]):
         return get_searchpage_cards(q, driver, next_page_url, i + 1, all_cards)
     return all_cards
 
-# def extract_card_urls(url):
-#     """
-#     Извлечение URL товаров на странице.
-#     """
-#     soup = url
-#     content = soup.find("div", {"id": "app"}).find("div").find("div", {"class": "index-content-_KxNP"})
-#     content_with_cards = content.find_all(class_="items-items-kAJAg") if content else None
-#     ress = []
-#     if content_with_cards:
-#         res = [card for card in content_with_cards[0]]
-#         for card in res:
-#             try:
-#                 product = card.find("a", {"data-marker": "item-title"})
-#                 product_link = "https://www.avito.ru" + product['href']
-#                 title = product.get('title', '')
-#                 description = card.find('meta', itemprop='description')['content']
-#                 price = float(card.find('meta', itemprop='price')['content'])
-#                 item_date = card.find('p', {'data-marker': 'item-date'}).text
-
-#                 ress.append({
-#                     'product_link': product_link,
-#                     'title': title,
-#                     'description': description,
-#                     'price': price,
-#                     'item_date': item_date
-#                 })
-#             except Exception as e:
-#                 print(f"Error processing card: {e}")
-
-#     return pd.DataFrame(ress)
-
 def fetch_urls(query):
     """
     Fetches product data for a given query from Avito.
@@ -205,19 +174,19 @@ def fetch_urls(query):
         results = []
         for item in items:
             title = item.find('h3').get_text(strip=True)
-            #price = item.find('span', {'data-marker': 'price'}).get_text(strip=True) if item.find('span', {'data-marker': 'price'}) else 'N/A'
             try:
                 price = float(item.find('meta', itemprop='price')['content'])
             except:
                 price = ''
+            description = item.find('meta', itemprop='description')['content']
             item_url = 'https://www.avito.ru' + item.find('a')['href']
-            #item_date = item.find('div', {'data-marker': 'item-date'}).get_text(strip=True) if item.find('div', {'data-marker': 'item-date'}) else 'N/A'
             item_date = item.find('p', {'data-marker': 'item-date'}).get_text()
             #image_link = item.find('li', {'data-marker': lambda x: x and x.startswith('slider-image/image')})['data-marker'].split('image-')[1] else 'N/A'
             
             results.append({
                 'title': title,
                 'price': price,
+                'description': description,
                 'item_url': item_url,
                 'item_date': item_date,
                 #'image_link': image_link
