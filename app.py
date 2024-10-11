@@ -106,8 +106,10 @@ def index():
         
         # if all_urls.empty:
         #     return "No data found for the given queries.", 404  # Return error message if no data
-
-        all_urls['timestamp'] = all_urls['item_date'].apply(lambda x: dateparser.parse(x))
+        try:
+            all_urls['timestamp'] = all_urls['item_date'].apply(lambda x: dateparser.parse(x))
+        except:
+            pass
         all_urls = all_urls.drop_duplicates()
 
         perfumes = False  # This can be dynamically set based on user input
