@@ -39,8 +39,8 @@ def process_queries(queries):
                 data = future.result()
                 if not data.empty:
                     all_urls.append(data)
-                # else:
-                #     print(f"No data found for query: {query}")
+                else:
+                    print(f"No data found for query: {query}")
             except Exception as exc:
                 print(f"{query} generated an exception: {exc}")
     
@@ -104,8 +104,8 @@ def index():
         output_filename = q_names + str(current_time).replace(' ', '_')[:-7] + ".csv"
         all_urls = process_queries(queries)
         
-        # if all_urls.empty:
-        #     return "No data found for the given queries.", 404  # Return error message if no data
+        if all_urls.empty:
+            return "No data found for the given queries.", 404  # Return error message if no data
         try:
             all_urls['timestamp'] = all_urls['item_date'].apply(lambda x: dateparser.parse(x))
         except:
