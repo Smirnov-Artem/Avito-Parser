@@ -178,7 +178,10 @@ def fetch_urls(query):
                 price = float(item.find('meta', itemprop='price')['content'])
             except:
                 price = ''
-            #description = item.find('meta', itemprop='description')['content']
+            try:
+                description = item.find('meta', itemprop='description')['content']
+            except:
+                description = ''
             item_url = 'https://www.avito.ru' + item.find('a')['href']
             item_date = item.find('p', {'data-marker': 'item-date'}).get_text()
             #image_link = item.find('li', {'data-marker': lambda x: x and x.startswith('slider-image/image')})['data-marker'].split('image-')[1] else 'N/A'
@@ -186,7 +189,7 @@ def fetch_urls(query):
             results.append({
                 'title': title,
                 'price': price,
-                #'description': description,
+                'description': description,
                 'item_url': item_url,
                 'item_date': item_date,
                 #'image_link': image_link
