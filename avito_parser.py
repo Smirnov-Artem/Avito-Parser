@@ -1,11 +1,14 @@
 import time
+import numpy as np
+import json
 import pandas as pd
 from selenium import webdriver
 from selenium_stealth import stealth
 from bs4 import BeautifulSoup
-import re
+from curl_cffi import requests
 import random
-import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import re
 
 def generate_random_stealth():
     """
@@ -69,14 +72,23 @@ def generate_random_stealth():
 
 def init_webdriver(proxy=None):
     """
-    Инициализация драйвера.
+    Описание: инициализирует драйвер для get_searchpage_cards.
+
+    Args:
+        proxy (str): при необходимости можно использовать прокси вида http://XX.XX.XX.XX:port,
+        дефолтное значение None.
+
+    Returns:
+        selenium.webdriver.chrome.webdriver.WebDriver: сгенерированный драйвер.
     """
+
     chrome_options = webdriver.ChromeOptions()
     chrome_options.headless = True
     if proxy:
         chrome_options.add_argument(f'--proxy-server={proxy}')
     
     driver = webdriver.Chrome(options=chrome_options)
+    
     stealth_attrs = generate_random_stealth()
     stealth(driver,
             languages=stealth_attrs["languages"],
@@ -135,73 +147,95 @@ def get_searchpage_cards(q, driver, page_url, i, all_cards=[]):
         return get_searchpage_cards(q, driver, next_page_url, i + 1, all_cards)
     return all_cards
 
-def fetch_urls(query):
+def extract_card_urls(url):
     """
-    Fetches product data for a given query from Avito.
+    Описание: находит ссылки на искомые товары на странице,
+    релевантные ссылки находятся в определенном классе страницы (items-items-kAJAg).
 
     Args:
-        query (str): The query string (e.g., 'iphone+15+pro').
+        search_page_html (str): выбранная страница.
 
     Returns:
-        pd.DataFrame: DataFrame of the results.
+        возвращает лист из ссылок на релевантные товары.
     """
-    base_url = f'https://www.avito.ru/all?q={query}'
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    }
+    soup = url
+    content = soup.find("div", {"id": "app"}).find("div").find("div", {"class": "index-content-_KxNP"})
+    content_with_cards = content.find_all(class_="items-items-kAJAg") if content else None
+    content_with_cards = content_with_cards[0] if content_with_cards else None
+    ress = []
+    res = [card for card in content_with_cards] if content_with_cards else []
+    # Loop through each card and extract the required data
+    for card in res:
+        soup = card
 
-    try:
-        response = requests.get(base_url, headers=headers)
-        response.raise_for_status()
-
-        # Debugging: Check if we got a response and its status
-        print(f"Response status code for query '{query}': {response.status_code}")
-        print(f"URL: {response.url}")
-
-        # Parse the page content
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        # Debugging: Check the page title or structure to verify correct page
-        print(f"Page title: {soup.title.string}")
-
-        # Find listings: Adjust the selector based on Avito's structure
-        items = soup.find_all('div', {'data-marker': 'item'})
-
-        # Debugging: Check how many items were found
-        print(f"Number of items found for query '{query}': {len(items)}")
-
-        # Collect item data
-        results = []
-        for item in items:
-            title = item.find('h3').get_text(strip=True)
+        try:
+            # Extract product details
+            product = soup.find("a", {"data-marker": "item-title"})
+            product_link = "https://www.avito.ru" + product['href']
             try:
-                price = float(item.find('meta', itemprop='price')['content'])
+                title = product['title']
             except:
-                price = ''
+                title = ''
+            description = soup.find('meta', itemprop='description')['content']
+            price = float(soup.find('meta', itemprop='price')['content'])
+            image_link = soup.find('li', {'data-marker': lambda x: x and x.startswith('slider-image/image')})['data-marker'].split('image-')[1]
+            item_date = soup.find('p', {'data-marker': 'item-date'}).get_text()
+
             try:
-                description = item.find('meta', itemprop='description')['content']
+                company_name = soup.find(class_='styles-module-root-o3j6a styles-module-size_s-xb_uK styles-module-size_s_compensated-QmHFs styles-module-size_s-__aUd styles-module-ellipsis-XeCfh styles-module-ellipsis_oneLine-_MdfX stylesMarningNormal-module-root-_BXZU stylesMarningNormal-module-paragraph-s-_lGjQ').text.strip()
             except:
-                description = ''
-            item_url = 'https://www.avito.ru' + item.find('a')['href']
-            item_date = item.find('p', {'data-marker': 'item-date'}).get_text()
-            #image_link = item.find('li', {'data-marker': lambda x: x and x.startswith('slider-image/image')})['data-marker'].split('image-')[1] else 'N/A'
-            
-            results.append({
+                company_name = ''
+            try:
+                status = soup.find('span', class_='SnippetBadge-title-oSImJ').text.strip()
+            except:
+                status = ''
+            try:
+                grade = soup.find('span', {'data-marker': 'seller-rating/score'}).text.strip()
+            except:
+                grade = ''
+            try:
+                review_number = soup.find('span', {'data-marker': 'seller-rating/summary'}).text.strip()
+            except:
+                review_number = ''
+
+            # Append the extracted details as a dictionary
+            ress.append({
+                'product_link': product_link,
                 'title': title,
-                'price': price,
                 'description': description,
-                'item_url': item_url,
+                'price': price,
+                'image_link': image_link,
                 'item_date': item_date,
-                #'image_link': image_link
+                'company_name': company_name,
+                'status': status,
+                'grade': grade,
+                'review_number': review_number
             })
+        except Exception as e:
+            print(f"Error processing card: {e}")
 
-        # Debugging: Check the results collected
-        print(f"Results for query '{query}': {results}")
+    # Convert the list of dictionaries into a Pandas DataFrame
+    df = pd.DataFrame(ress)
+    return df
 
-        # Convert the results to a DataFrame
-        df = pd.DataFrame(results)
-        return df
+def fetch_urls(query):
+    """
+    Описание: возвращает искомые URLs.
 
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching URL for query '{query}': {e}")
-        return pd.DataFrame()  # Return an empty DataFrame on error
+    Args:
+        query (str): запрос вида "iphone+15".
+
+    Returns:
+        set(result_list) (list): список доступных URLs товаров.
+    """
+
+    driver = init_webdriver()
+    url_search = "https://www.avito.ru/all?cd=1&q=" + query
+    search_page_html_all = get_searchpage_cards(query, driver, url_search, 1)
+    infos = []
+    for ind in range(0, len(search_page_html_all)):
+        card_urls_and_info = extract_card_urls(search_page_html_all[ind])
+        infos.append(card_urls_and_info)
+    driver.quit()  # останавливает драйвер после выполения
+    new_df = pd.concat(infos)
+    return new_df
