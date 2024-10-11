@@ -145,7 +145,7 @@ def fetch_urls(query):
     Returns:
         pd.DataFrame: DataFrame of the results.
     """
-    base_url = f'https://www.avito.ru/rossiya?q={query}'
+    base_url = f'https://www.avito.ru/all?q={query}'
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
     }
