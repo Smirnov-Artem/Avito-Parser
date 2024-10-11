@@ -32,6 +32,8 @@ def process_queries(queries):
     queries = [query.replace(" ", "+") for query in queries]
     all_urls = []
     with ThreadPoolExecutor(max_workers=len(queries)) as executor:
+        resss = fetch_urls(query)
+        print(resss)
         future_to_query = {executor.submit(fetch_urls, query): query for query in queries}
         for future in as_completed(future_to_query):
             query = future_to_query[future]
