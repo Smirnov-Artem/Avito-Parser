@@ -152,7 +152,7 @@ def index():
 
         all_urls['timestamp'] = all_urls['item_date'].apply(lambda x: dateparser.parse(x))
 
-        perfumes = True
+        perfumes = False
         all_urls = all_urls.drop_duplicates()
         if perfumes:
             all_urls = filter_descriptions_perfumes(all_urls)
@@ -162,6 +162,9 @@ def index():
 
     return render_template('index.html')
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+# if __name__ == "__main__":
+#     port = int(os.environ.get("PORT", 8080))
+#     app.run(host="0.0.0.0", port=port)
+
+if __name__ == '__main__':
+    app.run(debug=True)
