@@ -20,51 +20,52 @@
 # # Run app.py when the container launches
 # CMD ["gunicorn", "--worker-class", "sync", "--workers", "1", "--bind", "0.0.0.0:8080", "app:app"]
 
+# Use the official Python image
+FROM python:3.10-slim
 
-FROM python:3.9-slim
+# Set the working directory in the container
+WORKDIR /app
 
-# Устанавливаем зависимости для Chrome
+# Copy the current directory contents into the container
+COPY . /app
+
+# Install dependencies and necessary tools
 RUN apt-get update && apt-get install -y \
     wget \
     unzip \
     curl \
-    gnupg \
-    libglib2.0-0 \
-    libnss3 \
-    libgconf-2-4 \
-    libfontconfig1 \
-    libx11-xcb1 \
-    libxcb1 \
-    libxcomposite1 \
-    libxcursor1 \
-    libxi6 \
-    libxrandr2 \
-    libxtst6 \
-    libxss1 \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libgtk-3-0 \
-    xvfb
+    gnupg2 \
+    ca-certificates
 
-# Скачиваем и устанавливаем Chrome
-RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
-    dpkg -i google-chrome-stable_current_amd64.deb || apt-get install -f -y && \
-    rm google-chrome-stable_current_amd64.deb
+# Add Chrome's signing key
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
 
-# Скачиваем и устанавливаем ChromeDriver
-RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` && \
-    wget -N https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip -P /tmp/ && \
-    unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/ && \
-    rm /tmp/chromedriver_linux64.zip && \
-    chmod +x /usr/local/bin/chromedriver
+# Set up Chrome's repository
+RUN sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
 
-# Устанавливаем зависимости приложения
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+# Install specific Chrome version (129.x)
+RUN apt-get update && apt-get install -y \
+    google-chrome-stable=129.0.6668.100-1
 
-# Копируем приложение в контейнер
-COPY . /app
-WORKDIR /app
+# Install ChromeDriver from the specified URL
+RUN wget -N https://storage.googleapis.com/chrome-for-testing-public/129.0.6668.100/linux64/chromedriver-linux64.zip -P /tmp/ && \
+    unzip /tmp/chromedriver-linux64.zip -d /usr/local/bin/ && \
+    rm /tmp/chromedriver-linux64.zip
 
-# Запускаем Xvfb и Gunicorn с динамическим портом
-CMD ["sh", "-c", "Xvfb :99 -ac & gunicorn --workers 4 --bind 0.0.0.0:$PORT app:app"]
+# Ensure ChromeDriver is executable
+RUN chmod +x /usr/local/bin/chromedriver
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Make sure ChromeDriver is in PATH
+ENV PATH="/usr/local/bin:$PATH"
+
+# Make port 8080 available to the world outside this container
+EXPOSE 8080
+
+# Define environment variable
+ENV NAME AvitoParser
+
+# Run app.py when the container launches
+CMD ["gunicorn", "--worker-class", "sync", "--workers", "1", "--bind", "0.0.0.0:8080", "app:app"]
