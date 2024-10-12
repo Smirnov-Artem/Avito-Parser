@@ -93,19 +93,18 @@ def write_to_csv(all_urls, filename="output.csv"):
 
 def process_queries(queries):
     """
-    Process the provided queries to return relevant products.
+    Process the provided queries to return relevant products sequentially.
     """
     queries = [query.replace(" ", "+") for query in queries]
     all_urls = []
-    with ThreadPoolExecutor(max_workers=len(queries)) as executor:
-        future_to_query = {executor.submit(fetch_urls, query): query for query in queries}
-        for future in as_completed(future_to_query):
-            query = future_to_query[future]
-            try:
-                data = future.result()
-                all_urls.append(data)
-            except Exception as exc:
-                print(f"{query} generated an exception: {exc}")
+
+    for query in queries:
+        try:
+            data = fetch_urls(query)
+            all_urls.append(data)
+        except Exception as exc:
+            print(f"{query} generated an exception: {exc}")
+
     all_urls = pd.concat(all_urls) if all_urls else pd.DataFrame()  # Ensure it's not empty
     return all_urls
 
