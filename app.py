@@ -60,7 +60,9 @@ def scrape():
         driver.quit()
 
         # Save the results to a CSV file
-        output_file = 'scraped_data.csv'
+        output_dir = os.path.dirname(os.path.abspath(__file__))  # Get the script directory
+        output_file = os.path.join(output_dir, 'scraped_data.csv')  # Save CSV to this directory
+        
         with open(output_file, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(['Title', 'Headings'])
@@ -71,9 +73,6 @@ def scrape():
     except Exception as e:
         driver.quit()
         return str(e)
-
-if __name__ == '__main__':
-    app.run(debug=True)
 
 
 if __name__ == '__main__':
