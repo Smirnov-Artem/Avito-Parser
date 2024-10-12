@@ -1,25 +1,3 @@
-# # Use the official Python image.
-# # https://hub.docker.com/_/python
-# FROM python:3.10-slim
-
-# # Set the working directory in the container
-# WORKDIR /app
-
-# # Copy the current directory contents into the container
-# COPY . /app
-
-# # Install any needed packages specified in requirements.txt
-# RUN pip install --no-cache-dir -r requirements.txt
-
-# # Make port 8080 available to the world outside this container
-# EXPOSE 8080
-
-# # Define environment variable
-# ENV NAME AvitoParser
-
-# # Run app.py when the container launches
-# CMD ["gunicorn", "--worker-class", "sync", "--workers", "1", "--bind", "0.0.0.0:8080", "app:app"]
-
 # Use the official Python image
 FROM python:3.10-slim
 
@@ -47,10 +25,11 @@ RUN sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable 
 RUN apt-get update && apt-get install -y \
     google-chrome-stable=129.0.6668.100-1
 
-# Install ChromeDriver from the specified URL
+# Install ChromeDriver from the specified URL and ensure the binary is properly extracted
 RUN wget -N https://storage.googleapis.com/chrome-for-testing-public/129.0.6668.100/linux64/chromedriver-linux64.zip -P /tmp/ && \
     unzip /tmp/chromedriver-linux64.zip -d /usr/local/bin/ && \
-    rm /tmp/chromedriver-linux64.zip
+    rm /tmp/chromedriver-linux64.zip && \
+    if [ ! -f /usr/local/bin/chromedriver ]; then echo "ChromeDriver not found!"; exit 1; fi
 
 # Ensure ChromeDriver is executable
 RUN chmod +x /usr/local/bin/chromedriver
