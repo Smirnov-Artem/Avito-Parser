@@ -27,9 +27,10 @@ RUN apt-get update && apt-get install -y \
 
 # Install ChromeDriver from the specified URL and ensure the binary is properly extracted
 RUN wget -N https://storage.googleapis.com/chrome-for-testing-public/129.0.6668.100/linux64/chromedriver-linux64.zip -P /tmp/ && \
-    unzip /tmp/chromedriver-linux64.zip -d /usr/local/bin/ && \
-    rm /tmp/chromedriver-linux64.zip && \
-    if [ ! -f /usr/local/bin/chromedriver ]; then echo "ChromeDriver not found!"; exit 1; fi
+    unzip /tmp/chromedriver-linux64.zip -d /tmp/ && \
+    ls /tmp/chromedriver* && \
+    mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
+    rm -rf /tmp/chromedriver-linux64.zip /tmp/chromedriver-linux64
 
 # Ensure ChromeDriver is executable
 RUN chmod +x /usr/local/bin/chromedriver
