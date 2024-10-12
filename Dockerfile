@@ -49,7 +49,7 @@ RUN apt-get update && apt-get install -y \
     google-chrome-stable=129.0.6668.100-1
 
 # Install ChromeDriver matching the Chrome version
-RUN CHROMEDRIVER_VERSION=`129.0.6668.89` && \
+RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` && \
     wget -N https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip -P /tmp/ && \
     unzip /tmp/chromedriver_linux64.zip -d /usr/local/bin/ && \
     rm /tmp/chromedriver_linux64.zip
