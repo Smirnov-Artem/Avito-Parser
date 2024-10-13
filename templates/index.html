@@ -28,6 +28,11 @@
             margin-bottom: 20px;
             color: #333;
         }
+        h2 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #333;
+        }
         label {
             font-size: 1em;
             color: #555;
@@ -55,11 +60,21 @@
         .form-section {
             margin-bottom: 30px;
         }
+        .ip-display {
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #888;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Web Scraper and URL Fetcher</h1>
+
+        <!-- Display the user's IP address -->
+        <div class="ip-display">
+            <p>Your IP address: {{ ip }}</p>
+        </div>
         
         <div class="form-section">
             <h2>Fetch Product URLs (CSV)</h2>
