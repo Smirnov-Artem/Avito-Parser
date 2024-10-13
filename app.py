@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import re
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
 app = Flask(__name__)
 
@@ -256,30 +257,35 @@ def process_queries(queries):
     return all_urls
 
 # Setup Selenium WebDriver with stealth
-def init_webdriver():
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--headless")  # Run in headless mode
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
+# def init_webdriver():
+#     chrome_options = webdriver.ChromeOptions()
+#     chrome_options.add_argument("--headless")  # Run in headless mode
+#     chrome_options.add_argument("--disable-gpu")
+#     chrome_options.add_argument("--no-sandbox")
+#     chrome_options.add_argument("--disable-dev-shm-usage")
 
-    stealth_attrs = generate_random_stealth()
+#     stealth_attrs = generate_random_stealth()
     
-    # Add randomized user agent
-    chrome_options.add_argument(f"user-agent={stealth_attrs['user_agent']}")
+#     # Add randomized user agent
+#     chrome_options.add_argument(f"user-agent={stealth_attrs['user_agent']}")
     
-    driver = webdriver.Chrome(options=chrome_options)
+#     driver = webdriver.Chrome(options=chrome_options)
     
-    stealth(driver,
-            user_agent=stealth_attrs["user_agent"],
-            languages=stealth_attrs["languages"],
-            vendor=stealth_attrs["vendor"],
-            platform=stealth_attrs["platform"],
-            webgl_vendor=stealth_attrs["webgl_vendor"],
-            renderer=stealth_attrs["renderer"],
-            fix_hairline=True)
+#     stealth(driver,
+#             user_agent=stealth_attrs["user_agent"],
+#             languages=stealth_attrs["languages"],
+#             vendor=stealth_attrs["vendor"],
+#             platform=stealth_attrs["platform"],
+#             webgl_vendor=stealth_attrs["webgl_vendor"],
+#             renderer=stealth_attrs["renderer"],
+#             fix_hairline=True)
     
-    driver.set_window_size(1920, 1080)
+#     driver.set_window_size(1920, 1080)
+#     return driver
+def init_webdriver():
+    firefox_options = FirefoxOptions()
+    firefox_options.add_argument("--headless")
+    driver = webdriver.Firefox(options=firefox_options)
     return driver
 
 # Route to home page
