@@ -40,21 +40,23 @@ def scrolldown(driver, num_scrolls):
 
     for _ in range(num_scrolls):
         driver.execute_script('window.scrollBy(0, 500)')
-        time.sleep(4)
+        time.sleep(0.1)
 
 def generate_random_stealth():
     """
-    Описание: возвращает рандомно сгенерированные атрибуты 
-    для последующего использования в stealth driver.
-
-    Вероятно, такая вариабельность избыточна, парсинг Avito
-    работает при минимальном наборе атрибутов для драйвера.
-    Тем не менее, для большей уверенности в стабильной работе
-    лучше использовать как можно больше разных атрибутов.
-
-    Returns:
-        dict: Словарь из строчек.
+    Returns randomly generated attributes for the stealth driver.
     """
+    
+    user_agents = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/91.0.864.48",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:89.0) Gecko/20100101 Firefox/89.0",
+        "Mozilla/5.0 (X11; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36",
+    ]
 
     languages = [
         ["en-US", "en"], ["en-GB", "en"], ["de-DE", "de"],
@@ -93,7 +95,9 @@ def generate_random_stealth():
         "Vivante GC1000", "Imagination PowerVR SGX543",
         "NVIDIA Tesla P100", "NVIDIA Quadro RTX 6000"
     ]
+
     return {
+        "user_agent": random.choice(user_agents),
         "languages": random.choice(languages),
         "vendor": random.choice(vendors),
         "platform": random.choice(platforms),
@@ -258,17 +262,23 @@ def init_webdriver():
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+
+    stealth_attrs = generate_random_stealth()
+    
+    # Add randomized user agent
+    chrome_options.add_argument(f"user-agent={stealth_attrs['user_agent']}")
     
     driver = webdriver.Chrome(options=chrome_options)
-    stealth_attrs = generate_random_stealth()
+    
     stealth(driver,
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            user_agent=stealth_attrs["user_agent"],
             languages=stealth_attrs["languages"],
             vendor=stealth_attrs["vendor"],
             platform=stealth_attrs["platform"],
             webgl_vendor=stealth_attrs["webgl_vendor"],
             renderer=stealth_attrs["renderer"],
             fix_hairline=True)
+    
     driver.set_window_size(1920, 1080)
     return driver
 
