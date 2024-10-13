@@ -220,8 +220,11 @@ def fetch_urls(query):
     search_page_html_all = get_searchpage_cards(query, driver, url_search, 1)
     infos = []
     for ind in range(0, len(search_page_html_all)):
-        card_urls_and_info = extract_card_urls(search_page_html_all[ind])
-        infos.append(card_urls_and_info)
+        try:
+            card_urls_and_info = extract_card_urls(search_page_html_all[ind])
+            infos.append(card_urls_and_info)
+        except:
+            pass
     driver.quit()  # останавливает драйвер после выполения
     new_df = pd.concat(infos)
     return new_df
