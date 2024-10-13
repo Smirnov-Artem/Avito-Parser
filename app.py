@@ -40,7 +40,7 @@ def scrolldown(driver, num_scrolls):
 
     for _ in range(num_scrolls):
         driver.execute_script('window.scrollBy(0, 500)')
-        time.sleep(0.1)
+        time.sleep(4)
 
 def generate_random_stealth():
     """
