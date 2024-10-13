@@ -1,19 +1,11 @@
 from flask import Flask, request, render_template, send_file
 import csv
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from avito_parser import *
 import os
 from datetime import datetime
 import dateparser
 import pandas as pd
-import time
-import numpy as np
-import json
-from selenium import webdriver
-from selenium_stealth import stealth
-from bs4 import BeautifulSoup
-import random
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import re
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
 app = Flask(__name__)
 
@@ -27,210 +19,6 @@ def write_to_csv(all_urls, filename="output.csv"):
     """
     all_urls.to_csv(filename, index=False, encoding='utf-8', columns=all_urls.columns)
 
-def scrolldown(driver, num_scrolls):
-    """
-    Описание: прокручивает активную страницу вниз.
-
-    Args:
-        driver (selenium.webdriver.chrome.webdriver.WebDriver): драйвер.
-        num_scrolls (int): сколько раз нужно выполнить прокрутку страницы вниз.
-
-    Returns:
-        selenium.webdriver.chrome.webdriver.WebDriver: сгенерированный драйвер.
-    """
-
-    for _ in range(num_scrolls):
-        driver.execute_script('window.scrollBy(0, 500)')
-        time.sleep(0.1)
-
-def generate_random_stealth():
-    """
-    Returns randomly generated attributes for the stealth driver.
-    """
-    
-    user_agents = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/91.0.864.48",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:89.0) Gecko/20100101 Firefox/89.0",
-        "Mozilla/5.0 (X11; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36",
-    ]
-
-    languages = [
-        ["en-US", "en"], ["en-GB", "en"], ["de-DE", "de"],
-        ["fr-FR", "fr"], ["es-ES", "es"], ["ru-RU", "ru"],
-        ["zh-CN", "zh"], ["ja-JP", "ja"], ["it-IT", "it"],
-        ["ko-KR", "ko"], ["pt-BR", "pt"], ["nl-NL", "nl"],
-        ["pl-PL", "pl"], ["sv-SE", "sv"], ["tr-TR", "tr"]
-    ]
-
-    vendors = [
-        "Google Inc.", "Google LLC", "Microsoft Corporation",
-        "Apple Inc.", "Mozilla Foundation", "Opera Software",
-        "Samsung Electronics", "Yandex", "Baidu Inc.",
-        "Huawei Technologies"
-    ]
-
-    platforms = [
-        "Win32", "Win64", "MacIntel", "Linux x86_64",
-        "Windows NT 10.0", "Linux armv7l", "Linux aarch64",
-        "iPhone", "iPad", "Android", "FreeBSD", "NetBSD",
-        "OpenBSD", "SunOS"
-    ]
-
-    webgl_vendors = [
-        "Intel Inc.", "NVIDIA Corporation", "AMD Inc.",
-        "ATI Technologies Inc.", "Qualcomm Inc.", "ARM Inc.",
-        "Imagination Technologies", "Apple Inc.", "Broadcom Inc.",
-        "Vivante Corporation"
-    ]
-
-    renderers = [
-        "Intel Iris OpenGL Engine", "NVIDIA GeForce RTX 2080",
-        "AMD Radeon Pro 5700 XT", "ATI Radeon HD 5450",
-        "Qualcomm Adreno 640", "Intel UHD Graphics 630",
-        "Apple A12X Bionic GPU", "ARM Mali-G76 MP16",
-        "Vivante GC1000", "Imagination PowerVR SGX543",
-        "NVIDIA Tesla P100", "NVIDIA Quadro RTX 6000"
-    ]
-
-    return {
-        "user_agent": random.choice(user_agents),
-        "languages": random.choice(languages),
-        "vendor": random.choice(vendors),
-        "platform": random.choice(platforms),
-        "webgl_vendor": random.choice(webgl_vendors),
-        "renderer": random.choice(renderers),
-        "fix_hairline": True
-    }
-
-def get_searchpage_cards(q, driver, page_url, i, all_cards=[]):
-    """
-    Описание: рекурсивно возвращает лист из доступных ссылок на товары, включая нерелевантые (предложенные самим сайтом)
-    на активной странице, пока есть следующая страница.
-
-    Args:
-        q (str): запрос вида "iphone+15".
-        driver (selenium.webdriver.chrome.webdriver.WebDriver): драйвер.
-        page_url (str): адрес страницы для поиска товаров.
-        i (int): номер страницы.
-        all_cards (list): список из URLs.
-
-    Returns:
-        all_cards (list): список из URLs.
-    """
-
-    driver.get(page_url)
-    scrolldown(driver, 20)
-    search_page_html = BeautifulSoup(driver.page_source, "html.parser")
-    all_cards.append(search_page_html)
-    next_page_tag = None
-    aria_label = search_page_html.find_all('a')
-    for tag in aria_label:
-        if 'aria-label' in tag.attrs and tag['aria-label'] == "Следующая страница":
-            next_page_tag = tag
-            break
-    if next_page_tag:
-        next_page_url = f"https://www.avito.ru/all?cd=1&p={i+1}&q=" + q
-        return get_searchpage_cards(q, driver, next_page_url, i + 1, all_cards)
-    return all_cards
-
-def extract_card_urls(url):
-    """
-    Описание: находит ссылки на искомые товары на странице,
-    релевантные ссылки находятся в определенном классе страницы (items-items-kAJAg).
-
-    Args:
-        search_page_html (str): выбранная страница.
-
-    Returns:
-        возвращает лист из ссылок на релевантные товары.
-    """
-    soup = url
-    content = soup.find("div", {"id": "app"}).find("div").find("div", {"class": "index-content-_KxNP"})
-    content_with_cards = content.find_all(class_="items-items-kAJAg") if content else None
-    content_with_cards = content_with_cards[0] if content_with_cards else None
-    ress = []
-    res = [card for card in content_with_cards] if content_with_cards else []
-    # Loop through each card and extract the required data
-    for card in res:
-        soup = card
-
-        try:
-            # Extract product details
-            product = soup.find("a", {"data-marker": "item-title"})
-            product_link = "https://www.avito.ru" + product['href']
-            try:
-                title = product['title']
-            except:
-                title = ''
-            description = soup.find('meta', itemprop='description')['content']
-            price = float(soup.find('meta', itemprop='price')['content'])
-            image_link = soup.find('li', {'data-marker': lambda x: x and x.startswith('slider-image/image')})['data-marker'].split('image-')[1]
-            item_date = soup.find('p', {'data-marker': 'item-date'}).get_text()
-
-            try:
-                company_name = soup.find(class_='styles-module-root-o3j6a styles-module-size_s-xb_uK styles-module-size_s_compensated-QmHFs styles-module-size_s-__aUd styles-module-ellipsis-XeCfh styles-module-ellipsis_oneLine-_MdfX stylesMarningNormal-module-root-_BXZU stylesMarningNormal-module-paragraph-s-_lGjQ').text.strip()
-            except:
-                company_name = ''
-            try:
-                status = soup.find('span', class_='SnippetBadge-title-oSImJ').text.strip()
-            except:
-                status = ''
-            try:
-                grade = soup.find('span', {'data-marker': 'seller-rating/score'}).text.strip()
-            except:
-                grade = ''
-            try:
-                review_number = soup.find('span', {'data-marker': 'seller-rating/summary'}).text.strip()
-            except:
-                review_number = ''
-
-            # Append the extracted details as a dictionary
-            ress.append({
-                'product_link': product_link,
-                'title': title,
-                'description': description,
-                'price': price,
-                'image_link': image_link,
-                'item_date': item_date,
-                'company_name': company_name,
-                'status': status,
-                'grade': grade,
-                'review_number': review_number
-            })
-        except Exception as e:
-            print(f"Error processing card: {e}")
-
-    # Convert the list of dictionaries into a Pandas DataFrame
-    df = pd.DataFrame(ress)
-    return df
-
-def fetch_urls(query):
-    """
-    Описание: возвращает искомые URLs.
-
-    Args:
-        query (str): запрос вида "iphone+15".
-
-    Returns:
-        set(result_list) (list): список доступных URLs товаров.
-    """
-
-    driver = init_webdriver()
-    url_search = "https://www.avito.ru/all?cd=1&q=" + query
-    search_page_html_all = get_searchpage_cards(query, driver, url_search, 1)
-    infos = []
-    for ind in range(0, len(search_page_html_all)):
-        card_urls_and_info = extract_card_urls(search_page_html_all[ind])
-        infos.append(card_urls_and_info)
-    driver.quit()  # останавливает драйвер после выполения
-    new_df = pd.concat(infos)
-    return new_df
-
 def process_queries(queries):
     """
     Описание: возвращает все искомые товары.
@@ -239,9 +27,8 @@ def process_queries(queries):
         queries (list): запрос(ы) вида ["iphone 15 pro", "ноутбук lenovo"].
 
     Returns:
-        list(set(all_urls)): список всех релевантных найденных товаров по запросу / запросам.
+        pd.DataFrame: DataFrame всех найденных товаров или пустой DataFrame при отсутствии результатов.
     """
-
     queries = [query.replace(" ", "+") for query in queries]
     all_urls = []
     with ThreadPoolExecutor(max_workers=len(queries)) as executor:
@@ -250,68 +37,88 @@ def process_queries(queries):
             query = future_to_query[future]
             try:
                 data = future.result()
-                all_urls.append(data)
+                if not data.empty:
+                    all_urls.append(data)
+                else:
+                    print(f"No data found for query: {query}")
             except Exception as exc:
                 print(f"{query} generated an exception: {exc}")
-    all_urls = pd.concat(all_urls)
+    
+    if all_urls:
+        all_urls = pd.concat(all_urls)
+    else:
+        all_urls = pd.DataFrame()  # Return an empty DataFrame if no data was fetched
+    
     return all_urls
 
-# Setup Selenium WebDriver with stealth
-# def init_webdriver():
-#     chrome_options = webdriver.ChromeOptions()
-#     chrome_options.add_argument("--headless")  # Run in headless mode
-#     chrome_options.add_argument("--disable-gpu")
-#     chrome_options.add_argument("--no-sandbox")
-#     chrome_options.add_argument("--disable-dev-shm-usage")
+def filter_descriptions_perfumes(df, units=None, min_value=11):
+    """
+    Filters rows in the DataFrame based on the 'description' or 'title' columns 
+    that contain a quantity greater than a specified threshold followed by specific units.
 
-#     stealth_attrs = generate_random_stealth()
+    Args:
+        df (pd.DataFrame): DataFrame со ссылками на товары.
+        units (list): Список единиц измерения.
+        min_value (int): Минимальное значение количества.
     
-#     # Add randomized user agent
-#     chrome_options.add_argument(f"user-agent={stealth_attrs['user_agent']}")
+    Returns:
+        pd.DataFrame: Отфильтрованный DataFrame.
+    """
+    if units is None:
+        units = ['ml', 'мл', 'ML', 'МЛ', 'Ml', 'Мл', 'миллилитров', 'Миллилитров']
     
-#     driver = webdriver.Chrome(options=chrome_options)
-    
-#     stealth(driver,
-#             user_agent=stealth_attrs["user_agent"],
-#             languages=stealth_attrs["languages"],
-#             vendor=stealth_attrs["vendor"],
-#             platform=stealth_attrs["platform"],
-#             webgl_vendor=stealth_attrs["webgl_vendor"],
-#             renderer=stealth_attrs["renderer"],
-#             fix_hairline=True)
-    
-#     driver.set_window_size(1920, 1080)
-#     return driver
-def init_webdriver():
-    firefox_options = FirefoxOptions()
-    firefox_options.add_argument("--headless")
-    driver = webdriver.Firefox(options=firefox_options)
-    return driver
+    unit_pattern = '|'.join(units)
+    pattern = fr'\b(\d+(\.\d+)?)\s*({unit_pattern})\b'
 
-# Route to home page
-@app.route('/')
+    def extract_quantity(text):
+        match = re.search(pattern, text)
+        if match:
+            quantity = float(match.group(1))
+            if quantity > min_value:
+                return quantity
+        return None
+
+    quantity_description = df['description'].apply(extract_quantity)
+    quantity_title = df['title'].apply(extract_quantity)
+    combined_quantities = quantity_description.combine_first(quantity_title)
+    mask = combined_quantities.notna()
+    new_df = df[mask].copy()
+    new_df['quantity_ml'] = combined_quantities[mask]
+    new_df['price_per_ml'] = round(new_df['price'] / new_df['quantity_ml'], 2)
+    new_df = new_df.sort_values(by='price_per_ml', ascending=False, na_position='first')
+    return new_df
+
+@app.route('/', methods=['GET', 'POST'])
 def index():
+    """
+    Описание: обработка запросов в веб-приложении.
+
+    Returns:
+        CSV файл для скачивания, если запрос выполнен методом POST.
+        Иначе рендерит шаблон index.html.
+    """
+    if request.method == 'POST':
+        queries = request.form.get('queries').split(',')
+        current_time = datetime.now()
+        q_names = '_'.join([query.replace(' ', '+') for query in queries])
+        output_filename = q_names + str(current_time).replace(' ', '_')[:-7] + ".csv"
+        all_urls = process_queries(queries)
+        
+        if all_urls.empty:
+            return "No data found for the given queries.", 404  # Return error message if no data
+
+        all_urls['timestamp'] = all_urls['item_date'].apply(lambda x: dateparser.parse(x))
+        all_urls = all_urls.drop_duplicates()
+
+        perfumes = False  # This can be dynamically set based on user input
+        if perfumes:
+            all_urls = filter_descriptions_perfumes(all_urls)
+        
+        write_to_csv(all_urls, filename=output_filename)
+        return send_file(output_filename, as_attachment=True, download_name=output_filename)
+
     return render_template('index.html')
 
-# Scraper route
-@app.route('/scrape', methods=['POST'])
-def scrape():
-    url = request.form['url']  # URL provided by user in form
-    driver = init_webdriver()
-    query = 'cinema+ysl'
-    #url_search = "https://www.avito.ru/all?cd=1&q=" + query
-    #search_page_html_all = get_searchpage_cards(query, driver, url_search, 1)
-    #print(search_page_html_all)
-    df = fetch_urls(query)
-    print(df)
-    current_time = datetime.now()
-    #q_names = '_'.join([query.replace(' ', '+') for query in queries])
-    q_names = query
-    output_filename = q_names + str(current_time).replace(' ', '_')[:-7] + ".csv"
-    output_dir = os.path.dirname(os.path.abspath(__file__))  # Get the script directory
-    output_file = os.path.join(output_dir, output_filename)  # Save CSV to this directory
-    write_to_csv(df, filename=output_file)
-    return send_file(output_file, as_attachment=True, download_name=output_file)
-
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
