@@ -1,8 +1,4 @@
-Поделиться
-
-
-Вы сказали:
-why this code works: app.py: from flask import Flask, request, render_template, send_file
+from flask import Flask, request, render_template, send_file
 import csv
 import os
 from datetime import datetime
