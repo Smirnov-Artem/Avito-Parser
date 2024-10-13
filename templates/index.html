@@ -3,14 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avito Scraper</title>
+    <title>Web Scraper and URL Fetcher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(6, 4, 4, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        label {
+            font-size: 1em;
+            color: #555;
+        }
+        input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .form-section {
+            margin-bottom: 30px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Avito Scraper</h1>
-    <form method="POST" enctype="multipart/form-data">
-        <label for="queries">Enter Queries (comma-separated):</label>
-        <input type="text" id="queries" name="queries" placeholder="e.g., iphone 15 pro, laptop lenovo">
-        <button type="submit">Search</button>
-    </form>
+    <div class="container">
+        <h1>Web Scraper and URL Fetcher</h1>
+        
+        <div class="form-section">
+            <h2>Fetch Product URLs (CSV)</h2>
+            <form method="post" action="/fetch-urls">
+                <label for="queries">Enter your queries (comma-separated):</label><br>
+                <input type="text" id="queries" name="queries" required><br>
+                <button type="submit">Download CSV</button>
+            </form>
+        </div>
+        
+        <div class="form-section">
+            <h2>Scrape Web Page</h2>
+            <form method="post" action="/scrape">
+                <label for="url">Enter the URL to scrape:</label><br>
+                <input type="text" id="url" name="url" required><br>
+                <button type="submit">Scrape</button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
