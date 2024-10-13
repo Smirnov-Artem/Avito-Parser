@@ -283,7 +283,8 @@ def index():
 # Scraper route
 @app.route('/scrape', methods=['POST'])
 def scrape():
-    url = request.form['url']  # URL provided by user in form
+    #url = request.form['url']  # URL provided by user in form
+    url = "https://www.avito.ru/all?cd=1&p=1&q=cinema+ysl"
     driver = init_webdriver()
     query = 'cinema+ysl'
     #url_search = "https://www.avito.ru/all?cd=1&q=" + query
