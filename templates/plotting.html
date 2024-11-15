@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Парсер Avito - Графики</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+            height: 100%;
+        }
+        /* Sidebar styling */
+        .sidebar {
+            width: 200px;
+            background-color: #007bff;
+            padding: 20px;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            height: 100vh; /* Make the sidebar full height */
+            position: fixed; /* Keep it fixed to the viewport */
+            top: 0;
+            left: 0;
+        }
+        .sidebar a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 1.1em;
+            margin: 10px 0;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        .sidebar a:hover {
+            background-color: #0056b3;
+        }
+        /* Search link specific styling */
+        .sidebar .search-link {
+            background-color: #0056b3;
+            font-weight: 600;
+            padding: 10px 18px;
+        }
+        .sidebar .search-link:hover {
+            background-color: #003f8f;
+        }
+        .sidebar .search-link svg {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+        /* Main content styling */
+        .main-content {
+            margin-left: 220px; /* Space for sidebar */
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            width: calc(100% - 220px); /* Adjust width to prevent overlap */
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(6, 4, 4, 0.1);
+            max-width: 1000px;
+            width: 100%;
+            margin: auto;
+            flex: 1;
+        }
+        h1 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .plot-container {
+            margin-top: 20px;
+        }
+        .plot-row-5-6 {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .plot-5-6 {
+            flex: 1;
+            min-width: 300px;
+            max-width: 48%;
+            margin: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .download-link {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            background-color: #0056b3;
+            padding: 10px 18px;
+            border-radius: 8px;
+            margin-top: 15px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .download-link:hover {
+            background-color: #003f8f;
+            transform: scale(1.05);
+        }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 150px;
+                padding: 15px;
+            }
+            .main-content {
+                margin-left: 170px;
+                width: calc(100% - 170px);
+            }
+        }
+        @media (max-width: 576px) {
+            .sidebar {
+                position: static;
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                justify-content: space-around;
+                padding: 10px 0;
+            }
+            .main-content {
+                margin: 0;
+                width: 100%;
+                padding: 10px;
+            }
+        }
+    </style>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <!-- Sidebar for navigation -->
+    <div class="sidebar">
+        <a href="/" class="search-link">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M21.53 20.47l-5.07-5.07a7.92 7.92 0 1 0-1.06 1.06l5.07 5.07a.75.75 0 1 0 1.06-1.06zM10.5 17a6.5 6.5 0 1 1 6.5-6.5 6.51 6.51 0 0 1-6.5 6.5z"/>
+            </svg>
+            Поиск товаров
+        </a>
+        <a href="map">Карты {{ plotting_status_map }}</a>
+        <a href="plotting">Графики {{ plotting_status }}</a>
+        <a href="modeling">Моделирование {{ modeling_status }}</a>
+        <!-- Download CSV button, only visible when data_ready is True -->
+        {% if data_ready %}
+        <a href="{{ url_for('download_csv') }}" class="download-link">
+            <svg height="30" viewBox="0 0 320 64" width="560" xmlns="http://www.w3.org/2000/svg">
+                <path clip-rule="evenodd" d="m5.106 0c-2.802 0-5.073 2.272-5.073 5.074v53.841c0 2.803 2.271 5.074 5.073 5.074h45.774c2.801 0 5.074-2.271 5.074-5.074v-38.605l-18.903-20.31h-31.945z" fill="#45b058" fill-rule="evenodd"/>
+                <path d="m20.306 43.197c.126.144.198.324.198.522 0 .378-.306.72-.703.72-.18 0-.378-.072-.504-.234-.702-.846-1.891-1.387-3.007-1.387-2.629 0-4.627 2.017-4.627 4.88 0 2.845 1.999 4.879 4.627 4.879 1.134 0 2.25-.486 3.007-1.369.125-.144.324-.233.504-.233.415 0 .703.359.703.738 0 .18-.072.36-.198.504-.937.972-2.215 1.693-4.015 1.693-3.457 0-6.176-2.521-6.176-6.212s2.719-6.212 6.176-6.212c1.8.001 3.096.721 4.015 1.711zm6.802 10.714c-1.782 0-3.187-.594-4.213-1.495-.162-.144-.234-.342-.234-.54 0-.361.27-.757.702-.757.144 0 .306.036.432.144.828.739 1.98 1.314 3.367 1.314 2.143 0 2.827-1.152 2.827-2.071 0-3.097-7.112-1.386-7.112-5.672 0-1.98 1.764-3.331 4.123-3.331 1.548 0 2.881.467 3.853 1.278.162.144.252.342.252.54 0 .36-.306.72-.703.72-.144 0-.306-.054-.432-.162-.882-.72-1.98-1.044-3.079-1.044-1.44 0-2.467.774-2.467 1.909 0 2.701 7.112 1.152 7.112 5.636.001 1.748-1.187 3.531-4.428 3.531zm16.994-11.254-4.159 10.335c-.198.486-.685.81-1.188.81h-.036c-.522 0-1.008-.324-1.207-.81l-4.142-10.335c-.036-.09-.054-.18-.054-.288 0-.36.323-.793.81-.793.306 0 .594.18.72.486l3.889 9.992 3.889-9.992c.108-.288.396-.486.72-.486.468 0 .81.378.81.793.001.09-.017.198-.052.288z" fill="#fff"/>
+                <g clip-rule="evenodd" fill-rule="evenodd">
+                    <path d="m56.001 20.357v1h-12.8s-6.312-1.26-6.128-6.707c0 0 .208 5.707 6.003 5.707z" fill="#349c42"/>
+                    <path d="m37.098.006v14.561c0 1.656 1.104 5.791 6.104 5.791h12.8l-18.904-20.352z" fill="#fff" opacity=".5"/>
+                </g>
+                <text x="200" y="32" font-family="Arial" font-size="30" fill="#fff" text-anchor="middle" alignment-baseline="central">Загрузить .CSV</text>
+            </svg>
+        </a>
+    {% endif %}
+    </div>
+    
+    <!-- Main content container -->
+    <div class="main-content">
+        <div class="container">
+            <h1>Графики для "{{ queries }}"</h1>
+
+            <!-- Display plots -->
+            {% if plots %}
+                <div class="plot-container">
+                    {% for plot in plots %}
+                        {% if loop.index == 5 %}
+                            <div class="plot-row-5-6">
+                                <div class="plot-5-6">{{ plot|safe }}</div>
+                        {% elif loop.index == 6 %}
+                                <div class="plot-5-6">{{ plot|safe }}</div>
+                            </div>
+                        {% else %}
+                            <div class="plot">{{ plot|safe }}</div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

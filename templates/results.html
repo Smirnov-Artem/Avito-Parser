@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результаты поиска и моделирования</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            flex-direction: column;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(6, 4, 4, 0.1);
+            max-width: 1000px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        h2 {
+            font-size: 1.5em;
+            margin-top: 40px;
+            color: #333;
+        }
+        .table-container {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f9;
+            color: #333;
+            position: sticky;
+            top: 0;
+        }
+        td {
+            word-wrap: break-word;
+        }
+        .plot-container {
+            margin-top: 20px;
+        }
+        .short-link {
+            color: #007bff;
+            text-decoration: none;
+            word-break: break-all;
+        }
+        .short-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <!-- Add Plotly library -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Результаты поиска и моделирования</h1>
+        
+        <!-- Loop over and display plots first -->
+        {% if plots %}
+            <div class="plot-container">
+                {% for plot in plots %}
+                    <div>{{ plot|safe }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <!-- Loop over each model result -->
+        {% for result in models_results %}
+            <h2>Модель: {{ result['model_name'] }}</h2>
+            <p><strong>Среднеквадратичная ошибка (MSE):</strong> {{ result['mse_avg'] }}</p>
+
+            <div class="table-container">
+                <h3>Настоящие и предсказанные цены</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Настоящая цена</th>
+                            <th>Предсказанная цена</th>
+                            <th>Ссылка на товар</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in result['actual_vs_predicted'].itertuples() %}
+                        <tr>
+                            <td>{{ row.Actual }}</td>
+                            <td>{{ row.Predicted }}</td>
+                            <td><a href="{{ row._3 }}" class="short-link" target="_blank">{{ row._3[:120] }}...</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Plotly plot container for individual model results -->
+            <div class="plot-container">
+                {{ result['plot_html']|safe }}
+            </div>
+
+        {% endfor %}
+    </div>
+</body>
+</html>
